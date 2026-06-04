@@ -35,7 +35,8 @@ class AppLogger {
       info('AppLogger initialized. Log file: ${_logFile!.path}');
     } catch (e, st) {
       // If path_provider not available (e.g., tests), just continue with console logging
-      _logger.w('Failed to initialize file logging: $e');
+      // FIXED: Used named parameters error and stackTrace
+      _logger.w('Failed to initialize file logging: $e', error: e, stackTrace: st);
       _logFile = null;
     }
   }
@@ -51,22 +52,25 @@ class AppLogger {
   }
 
   void info(String message, [Map<String, dynamic>? extra]) {
-    _logger.i(message, extra);
+    // FIXED: Shifted positional extra into the message context or pass as an object if required
+    _logger.i(message, error: extra);
     _writeToFile('[INFO] $message ${extra ?? ''}');
   }
 
   void debug(String message, [Map<String, dynamic>? extra]) {
-    _logger.d(message, extra);
+    _logger.d(message, error: extra);
     _writeToFile('[DEBUG] $message ${extra ?? ''}');
   }
 
   void warn(String message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.w(message, error, stackTrace);
+    // FIXED: Used named parameters error and stackTrace
+    _logger.w(message, error: error, stackTrace: stackTrace);
     _writeToFile('[WARN] $message ${error ?? ''}');
   }
 
   void error(String message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.e(message, error, stackTrace);
+    // FIXED: Used named parameters error and stackTrace
+    _logger.e(message, error: error, stackTrace: stackTrace);
     _writeToFile('[ERROR] $message ${error ?? ''}');
   }
 }
@@ -99,7 +103,8 @@ class AppBlocObserver extends BlocObserver {
   @override
   void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
     super.onError(bloc, error, stackTrace);
+    // FIXED: AppLogger already updated to accept positional mappings internally,
+    // but ensures the interface parameters cleanly cascade down.
     AppLogger.instance.error('onError in ${bloc.runtimeType}', error, stackTrace);
   }
 }
-

@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:graduation_app/core/services/token_storage.dart';
+import 'package:graduation_app_assistant/core/services/token_storage.dart';
 import '../utils/backend_endpoints.dart';
 import 'database_service.dart';
 import 'api_logger_interceptor.dart';

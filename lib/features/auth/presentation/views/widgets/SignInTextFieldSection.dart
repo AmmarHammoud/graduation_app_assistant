@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-
 import '../../../../../core/functions/custom_validator.dart';
 import '../../../../../core/theme/app_text_styles.dart';
 import 'CustomPasswordTextField.dart';
