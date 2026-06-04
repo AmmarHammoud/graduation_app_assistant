@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
+import 'package:graduation_app_assistant/features/projects/domain/entities/assigned_project.dart';
 import '../../../../core/errors/failures.dart';
-import '../entities/project.dart';
 import '../repositories/project_repository.dart';
 
 class GetProjects {
@@ -8,7 +8,7 @@ class GetProjects {
 
   GetProjects(this.repository);
 
-  Future<Either<Failure, List<Project>>> call({String? filter}) async {
+  Future<Either<Failure, List<AssignedProject>>> call({String? filter}) async {
     return await repository.getProjects(filter: filter);
   }
 }

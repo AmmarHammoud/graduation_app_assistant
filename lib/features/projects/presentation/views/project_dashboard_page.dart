@@ -1,155 +1,129 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:graduation_app_assistant/features/projects/presentation/views/proejct_details_page.dart';
-import '../../../../core/services/get_it_service.dart';
-import '../../domain/entities/project.dart';
-import '../cubit/project_cubit.dart';
-import '../cubit/project_details_cubit.dart';
-import '../cubit/project_state.dart';
+import 'package:loading_indicator/loading_indicator.dart';
+import '../../domain/entities/assigned_project.dart';
+import '../cubit/assigned_project_cubit.dart';
+import '../cubit/assigned_project_state.dart';
 
-class ProjectsDashboardPage extends StatelessWidget {
-  const ProjectsDashboardPage({super.key});
+class AssistantDashboardPage extends StatelessWidget {
+  const AssistantDashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF7F9FC),
-        appBar: _buildAppBar(),
-        body: SafeArea(
-          child: Column(
-            children: [
-              const SizedBox(height: 16),
-              _buildFilterTabs(context),
-              const SizedBox(height: 16),
-              Expanded(child: _buildProjectsList()),
-            ],
+        backgroundColor: const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.menu, color: Colors.black),
+            onPressed: () {},
           ),
-        ),
-      ),
-    );
-  }
-
-  AppBar _buildAppBar() {
-    return AppBar(
-      backgroundColor: const Color(0xFFF7F9FC),
-      elevation: 0,
-      title: const Text(
-        'مشاريعي',
-        style: TextStyle(color: Color(0xFF0F172A), fontSize: 22, fontWeight: FontWeight.bold),
-      ),
-      centerTitle: true,
-      actions: [
-        Stack(
-          alignment: Alignment.topRight,
-          children: [
+          title: const Text(
+            'مشاريعي المسندة',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          centerTitle: true,
+          actions: [
             IconButton(
-              icon: const Icon(Icons.notifications_none_outlined, color: Color(0xFF0F172A)),
+              icon: const Icon(Icons.notifications_none_outlined, color: Colors.black),
               onPressed: () {},
             ),
-            const Positioned(
-              top: 12,
-              right: 12,
-              child: CircleAvatar(radius: 4, backgroundColor: Colors.red),
-            )
+            const SizedBox(width: 8),
+            const CircleAvatar(
+              radius: 18,
+              backgroundColor: Color(0xFFE2E8F0),
+              child: Icon(Icons.person_outline, color: Colors.black54),
+            ),
+            const SizedBox(width: 16),
           ],
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12.0),
-          child: CircleAvatar(
-            backgroundImage: NetworkImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150'),
-          ),
-        )
-      ],
-    );
-  }
-
-  Widget _buildFilterTabs(BuildContext context) {
-    final tabs = ['الكل', 'قيد التنفيذ', 'منجز'];
-    return BlocBuilder<ProjectCubit, ProjectState>(
-      builder: (context, state) {
-        String currentTab = 'الكل';
-        if (state is ProjectLoaded) currentTab = state.activeFilter;
-
-        return SizedBox(
-          height: 40,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: tabs.length,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemBuilder: (context, index) {
-              final isSelected = tabs[index] == currentTab;
-              return GestureDetector(
-                onTap: () {
-                  // Simply invoking the method on Cubit directly instead of adding an event
-                  context.read<ProjectCubit>().loadProjects(tabs[index]);
-                },
-                child: Container(
-                  margin: const EdgeInsets.only(left: 12),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFF0F172A) : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.black12.withOpacity(0.05)),
-                  ),
-                  child: Text(
-                    tabs[index],
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : const Color(0xFF64748B),
-                      fontWeight: FontWeight.w600,
+        body: BlocBuilder<AssignedProjectsCubit, AssignedProjectsState>(
+          builder: (context, state) {
+            if (state is AssignedProjectsLoading) {
+              print('00000000000000000000000000000000000000000000000000');
+              return const LoadingIndicator(
+                indicatorType: Indicator.ballPulse,
+                colors: [Colors.red],
+                strokeWidth: 2,
+              );
+            }
+            if (state is AssignedProjectsLoaded) {
+              return Column(
+                children: [
+                  _buildFilterChipsRow(context, state),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: state.filteredProjects.length,
+                      itemBuilder: (context, index) {
+                        return _buildProjectCard(context, state.filteredProjects[index]);
+                      },
                     ),
                   ),
-                ),
+                ],
               );
-            },
-          ),
-        );
-      },
+            }
+            if (state is AssignedProjectsError) {
+              return Center(child: Text(state.message));
+            }
+            return const Center(child: Text('بدء تهيئة لوحة التحكم...'));
+          },
+        ),
+      ),
     );
   }
 
-  Widget _buildProjectsList() {
-    return BlocBuilder<ProjectCubit, ProjectState>(
-      builder: (context, state) {
-        if (state is ProjectLoading) {
-          return const Center(child: CircularProgressIndicator.adaptive());
-        } else if (state is ProjectLoaded) {
-          print(state.projects.toString());
-          if (state.projects.isEmpty) {
-            return const Center(child: Text('لا توجد مشاريع متاحة'));
-          }
-          return ListView.builder(
-            itemCount: state.projects.length,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemBuilder: (context, index) => ProjectCard(project: state.projects[index]),
+  Widget _buildFilterChipsRow(BuildContext context, AssignedProjectsLoaded state) {
+    final filters = ['الكل', 'قيد التنفيذ', 'منجز'];
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        children: filters.map((filter) {
+          final isSelected = state.activeFilter == filter;
+          return Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: ChoiceChip(
+              label: Text(filter),
+              selected: isSelected,
+              selectedColor: const Color(0xFF0F172A),
+              backgroundColor: Colors.white,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : const Color(0xFF475569),
+                fontWeight: FontWeight.bold,
+              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              onSelected: (_) {
+                context.read<AssignedProjectsCubit>().loadDashboard(filter);
+              },
+            ),
           );
-        } else if (state is ProjectError) {
-          return Center(child: Text(state.message));
-        }
-        return const SizedBox.shrink();
-      },
+        }).toList(),
+      ),
     );
   }
-}
 
-// ProjectCard is identical to the prior implementation...
-class ProjectCard extends StatelessWidget {
-  final Project project;
-  const ProjectCard({super.key, required this.project});
+  Widget _buildProjectCard(BuildContext context, AssignedProject project) {
+    // Dynamic status colors configuration
+    Color statusBgColor = const Color(0xFFE2E8F0);
+    Color statusTextColor = const Color(0xFF475569);
+    if (project.statusText == 'قيد التنفيذ') {
+      statusBgColor = const Color(0xFFE6F7F4);
+      statusTextColor = const Color(0xFF006D5B);
+    }
 
-  @override
-  Widget build(BuildContext context) {
     return Container(
-      //margin: const EdgeInsets.bottom(16),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            spreadRadius: 2,
-            blurRadius: 12,
+            color: Colors.black.withOpacity(0.015),
+            blurRadius: 10,
             offset: const Offset(0, 4),
           )
         ],
@@ -157,125 +131,94 @@ class ProjectCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Stack(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                child: Image.network(
-                  project.imageUrl,
-                  height: 180,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
+              Text(
+                project.title,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusBgColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  project.statusText,
+                  style: TextStyle(color: statusTextColor, fontWeight: FontWeight.bold, fontSize: 12),
                 ),
               ),
-              Positioned(top: 12, right: 12, child: _buildStatusBadge())
             ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(project.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on_outlined, size: 16, color: Color(0xFF94A3B8)),
-                    const SizedBox(width: 4),
-                    Text(project.location, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('نسبة الإنجاز', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-                    Text('${(project.completionPercentage * 100).toInt()}%', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: project.completionPercentage,
-                    backgroundColor: const Color(0xFFF1F5F9),
-                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF059669)),
-                    minHeight: 6,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Divider(height: 1),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Locate TextButton.icon inside your dashboard project card:
-                    TextButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => BlocProvider(
-                              create: (context) => getIt<ProjectDetailsCubit>()..loadProjectDetails(project.id),
-                              child: const ProjectDetailsPage(),
-                            ),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.arrow_back, size: 16, color: Color(0xFF0F172A)),
-                      label: const Text('التفاصيل', style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold)),
-                    ),
-                    if (project.executionDateText != null)
-                      Row(
-                        children: [
-                          Icon(
-                              project.status == ProjectStatus.upcoming ? Icons.access_time : Icons.calendar_today_outlined,
-                              size: 14,
-                              color: const Color(0xFF94A3B8)
-                          ),
-                          const SizedBox(width: 4),
-                          Text(project.executionDateText!, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
-                        ],
-                      )
-                  ],
-                )
-              ],
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.location_on_outlined, size: 16, color: Colors.grey),
+              const SizedBox(width: 4),
+              Text(
+                project.location,
+                style: const TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('نسبة الإنجاز', style: TextStyle(fontSize: 13, color: Colors.grey)),
+              Text(
+                '${(project.progressPercentage * 100).toStringAsFixed(0)}%',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: project.progressPercentage,
+              backgroundColor: const Color(0xFFF1F5F9),
+              color: const Color(0xFF006D5B),
+              minHeight: 8,
             ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Divider(color: Color(0xFFF1F5F9)),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    size: 16,
+                    color: project.activeWorkItemsCount > 0 ? const Color(0xFF006D5B) : Colors.grey,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'بنود قيد التنفيذ: ${project.activeWorkItemsCount}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: project.activeWorkItemsCount > 0 ? const Color(0xFF334155) : Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+              TextButton(
+                onPressed: () {
+                  // Navigation setup to details screen goes here
+                },
+                child: const Text(
+                  'التفاصيل',
+                  style: TextStyle(color: Color(0xFF006D5B), fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
           )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge() {
-    Color bgColor;
-    Color textColor;
-
-    switch (project.status) {
-      case ProjectStatus.completed:
-        bgColor = const Color(0xFFD1FAE5);
-        textColor = const Color(0xFF065F46);
-        break;
-      case ProjectStatus.upcoming:
-        bgColor = const Color(0xFFE2E8F0);
-        textColor = const Color(0xFF475569);
-        break;
-      case ProjectStatus.inProgress:
-      default:
-        bgColor = const Color(0xFFECFDF5);
-        textColor = const Color(0xFF10B981);
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(20)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CircleAvatar(radius: 3, backgroundColor: textColor),
-          const SizedBox(width: 6),
-          Text(project.statusLabel ?? '', style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.bold)),
         ],
       ),
     );

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:graduation_app_assistant/features/projects/presentation/cubit/assigned_project_cubit.dart';
 import '../../../../core/services/get_it_service.dart';
 import '../../../../core/utils/show_err_dialog.dart';
-import '../../../projects/presentation/cubit/project_cubit.dart';
 import '../../../projects/presentation/views/project_dashboard_page.dart';
 import '../../domain/repo/auth_repo.dart';
 import '../cubits/sign_in/sign_in_cubit.dart';
@@ -33,8 +33,8 @@ class SignInView extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (_) => BlocProvider(
-                  create: (context) => getIt<ProjectCubit>()..getProjects(filter: 'الكل'),
-                  child: const ProjectsDashboardPage(),
+                  create: (context) => getIt<AssignedProjectsCubit>()..loadDashboard('الكل'),
+                  child: const AssistantDashboardPage(),
                 ),
               ),
               (route) => false,
