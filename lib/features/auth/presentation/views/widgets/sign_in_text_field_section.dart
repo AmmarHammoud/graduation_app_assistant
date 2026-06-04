@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import '../../../../../core/functions/custom_validator.dart';
 import '../../../../../core/theme/app_text_styles.dart';
-import 'CustomPasswordTextField.dart';
+import 'custom_password_text_field.dart';
 
 class SignInTextFieldSection extends StatelessWidget {
   const SignInTextFieldSection({
     super.key,
-    required GlobalKey<FormBuilderState> formKey,
-  }) : _formKey = formKey;
+    required this.formKey,
+  });
 
-  final GlobalKey<FormBuilderState> _formKey;
+  final GlobalKey<FormBuilderState> formKey;
 
   @override
   Widget build(BuildContext context) {
     return FormBuilder(
-      key: _formKey,
+      key: formKey,
       autovalidateMode: AutovalidateMode.disabled,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,6 +29,7 @@ class SignInTextFieldSection extends StatelessWidget {
           SizedBox(height: 8),
           FormBuilderTextField(
             name: "email",
+            initialValue: 'asst.sara@alfanar',
             keyboardType: TextInputType.emailAddress,
             validator: CustomValidator.emailValidator,
             textInputAction: TextInputAction.next,

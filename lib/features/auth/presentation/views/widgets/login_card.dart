@@ -4,10 +4,10 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:loading_indicator/loading_indicator.dart';
 
 import '../../cubits/sign_in/sign_in_cubit.dart';
-import 'SignInTextFieldSection.dart';
+import 'sign_in_text_field_section.dart';
 
 class LoginCard extends StatefulWidget {
-  const LoginCard({Key? key}) : super(key: key);
+  const LoginCard({super.key});
 
   @override
   State<LoginCard> createState() => _LoginCardState();
@@ -34,7 +34,7 @@ class _LoginCardState extends State<LoginCard> {
         borderRadius: BorderRadius.circular(24.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: const Color.fromRGBO(0, 0, 0, 0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),

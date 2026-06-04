@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class FooterText extends StatelessWidget {
-  const FooterText({Key? key}) : super(key: key);
+  const FooterText({super.key});
 
   @override
   Widget build(BuildContext context) {

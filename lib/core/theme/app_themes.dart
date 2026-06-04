@@ -25,7 +25,6 @@ class AppTheme {
         ColorScheme.fromSeed(
           seedColor: AppColors.primary,
           brightness: Brightness.light,
-          background: AppColors.backgroundLight,
           surface: Colors.white,
         ).copyWith(
           primary: AppColors.primary,
@@ -132,21 +131,21 @@ class AppTheme {
 
     checkboxTheme: CheckboxThemeData(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-      fillColor: MaterialStateProperty.resolveWith(
-        (states) => states.contains(MaterialState.selected)
+      fillColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
             ? AppColors.primary
             : Colors.transparent,
       ),
     ),
 
     radioTheme: RadioThemeData(
-      fillColor: MaterialStateProperty.all(AppColors.primary),
+      fillColor: WidgetStateProperty.all(AppColors.primary),
     ),
 
     switchTheme: SwitchThemeData(
-      thumbColor: MaterialStateProperty.resolveWith((states) => Colors.white),
-      trackColor: MaterialStateProperty.resolveWith(
-        (states) => states.contains(MaterialState.selected)
+      thumbColor: WidgetStateProperty.resolveWith((states) => Colors.white),
+      trackColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
             ? AppColors.primary
             : const Color(0xFFD1D5DB),
       ),
@@ -214,7 +213,6 @@ class AppTheme {
         ColorScheme.fromSeed(
           seedColor: AppColors.primary,
           brightness: Brightness.dark,
-          background: AppColors.backgroundDark,
           surface: AppColors.cardDark,
         ).copyWith(
           primary: AppColors.primary,
@@ -320,8 +318,8 @@ class AppTheme {
 
     checkboxTheme: CheckboxThemeData(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-      fillColor: MaterialStateProperty.resolveWith(
-        (states) => states.contains(MaterialState.selected)
+      fillColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
             ? AppColors.primary
             : Colors.transparent,
       ),
@@ -329,13 +327,13 @@ class AppTheme {
     ),
 
     radioTheme: RadioThemeData(
-      fillColor: MaterialStateProperty.all(AppColors.primary),
+      fillColor: WidgetStateProperty.all(AppColors.primary),
     ),
 
     switchTheme: SwitchThemeData(
-      thumbColor: MaterialStateProperty.resolveWith((states) => Colors.white),
-      trackColor: MaterialStateProperty.resolveWith(
-        (states) => states.contains(MaterialState.selected)
+      thumbColor: WidgetStateProperty.resolveWith((states) => Colors.white),
+      trackColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
             ? AppColors.primary
             : const Color(0xFF374151),
       ),

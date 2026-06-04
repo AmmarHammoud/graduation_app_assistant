@@ -31,6 +31,7 @@ class _CustomPasswordTextFieldState extends State<CustomPasswordTextField> {
   @override
   Widget build(BuildContext context) {
     return FormBuilderTextField(
+      initialValue: 'password',
       name: widget.name,
       obscureText: _obscure,
       obscuringCharacter: '•',
