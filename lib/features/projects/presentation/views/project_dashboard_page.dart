@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:graduation_app_assistant/features/profile/presentation/cubits/profile_cubit.dart';
+import 'package:graduation_app_assistant/features/profile/presentation/views/profile_view.dart';
+import 'package:graduation_app_assistant/features/projects/presentation/cubit/assigned_project_details_cubit.dart';
+import 'package:graduation_app_assistant/features/projects/presentation/views/proejct_details_page.dart';
 import 'package:loading_indicator/loading_indicator.dart';
+import '../../../../core/services/get_it_service.dart';
 import '../../domain/entities/assigned_project.dart';
 import '../cubit/assigned_project_cubit.dart';
 import '../cubit/assigned_project_state.dart';
@@ -32,10 +37,23 @@ class AssistantDashboardPage extends StatelessWidget {
               onPressed: () {},
             ),
             const SizedBox(width: 8),
-            const CircleAvatar(
-              radius: 18,
-              backgroundColor: Color(0xFFE2E8F0),
-              child: Icon(Icons.person_outline, color: Colors.black54),
+            GestureDetector(
+              onTap: (){
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider(
+                      create: (context) => getIt<ProfileCubit>()..getProfile(),
+                      child: const ProfileView(),
+                    ),
+                  ),
+                );
+              },
+              child: const CircleAvatar(
+                radius: 18,
+                backgroundColor: Color(0xFFE2E8F0),
+                child: Icon(Icons.person_outline, color: Colors.black54),
+              ),
             ),
             const SizedBox(width: 16),
           ],
@@ -134,9 +152,11 @@ class AssistantDashboardPage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                project.title,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              Expanded(
+                child:  Text(
+                  project.title,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -211,6 +231,15 @@ class AssistantDashboardPage extends StatelessWidget {
               TextButton(
                 onPressed: () {
                   // Navigation setup to details screen goes here
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BlocProvider(
+                        create: (context) => getIt<AssignedProjectDetailsCubit>()..loadProjectDetails(project.id),
+                        child: const AssistantProjectDetailsPage(),
+                      ),
+                    ),
+                  );
                 },
                 child: const Text(
                   'التفاصيل',

@@ -12,6 +12,7 @@ class BackendEndPoint {
   static const String projectSpaces = 'spaces';
   static const String projectWorkItems = 'work-items';
   static const String sendFCMToken = 'fcm-token';
+  static const String profile = 'assistant/account';
 
   static String get apiUrl => baseUrl;
 }

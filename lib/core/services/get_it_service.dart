@@ -24,9 +24,11 @@ import 'package:graduation_app_assistant/features/projects/data/datasources/assi
 // Existing Imports
 import '../../features/auth/data/repo/auth_repo_imp.dart';
 import '../../features/auth/domain/repo/auth_repo.dart';
+import '../../features/profile/data/repo/profile_repo_imp.dart';
+import '../../features/profile/domain/repo/profile_repo.dart';
 import '../../features/projects/domain/usecases/get_project_details.dart';
 import '../../features/projects/presentation/cubit/assigned_project_cubit.dart';
-import '../../features/projects/presentation/cubit/project_details_cubit.dart';
+import '../../features/projects/presentation/cubit/assigned_project_details_cubit.dart';
 import 'api_service.dart';
 import 'database_service.dart';
 
@@ -72,5 +74,10 @@ setupSingltonGetIt() async {
 
   // Add this inside setupSingltonGetIt()
   getIt.registerLazySingleton(() => GetProjectDetails(getIt.get<ProjectRepository>()));
-  getIt.registerFactory(() => ProjectDetailsCubit(getProjectDetails: getIt.get<GetProjectDetails>()));
+  getIt.registerFactory(() => AssignedProjectDetailsCubit(getProjectDetails: getIt.get<GetProjectDetails>()));
+
+
+  getIt.registerSingleton<ProfileRepo>(
+    ProfileRepoImp(databaseService: getIt.get<DatabaseService>()),
+  );
 }
