@@ -1,12 +1,14 @@
 import 'dart:async';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:graduation_app_assistant/core/services/token_storage.dart';
 import 'package:graduation_app_assistant/features/auth/presentation/views/sign_in_view.dart';
 
 
 import 'core/services/app_logger.dart';
 import 'core/services/get_it_service.dart';
+import 'features/projects/presentation/cubit/assigned_project_cubit.dart';
 import 'features/projects/presentation/views/project_dashboard_page.dart';
 
 void main() async {
@@ -37,15 +39,16 @@ void main() async {
   setupSingltonGetIt();
 
   // Catch any uncaught errors
-  runZonedGuarded(() {
-    runApp(const MyApp());
+  runZonedGuarded(() async {
+    runApp(MyApp(userSignedIn: await TokenStorage().readAccess() != null));
   }, (error, stack) {
     AppLogger.instance.error('Uncaught error', error, stack);
   });
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool userSignedIn;
+  const MyApp({super.key, required this.userSignedIn});
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +58,10 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'Tajawal',
       ),
-      home: const SignInView(),
+      home: userSignedIn ? BlocProvider(
+        create: (context) => getIt<AssignedProjectsCubit>()..loadDashboard('الكل'),
+        child: const AssistantDashboardPage(),
+      ) : SignInView(),
     );
   }
 }
