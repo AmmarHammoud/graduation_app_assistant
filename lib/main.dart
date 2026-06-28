@@ -58,10 +58,12 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'Tajawal',
       ),
-      home: userSignedIn ? BlocProvider(
-        create: (context) => getIt<AssignedProjectsCubit>()..loadDashboard('الكل'),
-        child: const AssistantDashboardPage(),
-      ) : SignInView(),
+      home:
+      // userSignedIn ? BlocProvider(
+      //   create: (context) => getIt<AssignedProjectsCubit>()..loadDashboard('الكل'),
+      //   child: const AssistantDashboardPage(),
+      // ) :
+      SignInView(),
     );
   }
 }
