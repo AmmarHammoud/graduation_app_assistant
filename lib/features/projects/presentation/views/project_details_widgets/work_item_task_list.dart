@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../core/services/get_it_service.dart';
 import '../../../domain/entities/assigned_proejct_details.dart';
+import '../../cubit/item_update_cubit.dart';
+import '../update_project_progress_page.dart';
 
 class WorkItemTaskList extends StatelessWidget {
   final List<AssistantWorkItemEntity> workItems;
@@ -103,6 +107,17 @@ class WorkItemTaskList extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         // Open update contextual actions panel sheet layout configuration
+                        // Inside AssistantProjectDetailsPage -> _buildWorkItemsTaskList -> ElevatedButton
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BlocProvider(
+                              // We initialize the factory and cascade call loadItemDetails passing the item's ID
+                              create: (context) => getIt<ItemUpdateCubit>()..loadItemDetails(item.id.toString()),
+                              child: const UpdateProjectProgressPage(),
+                            ),
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0F172A),

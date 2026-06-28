@@ -1,55 +1,31 @@
 import 'package:graduation_app_assistant/features/projects/data/models/assigned_project_details_model.dart';
 import '../../../../core/services/database_service.dart';
 import '../../../../core/utils/backend_endpoints.dart';
+import '../models/work_item_update_details.dart';
 import '../models/assigned_project_model.dart';
 
 abstract class AssignedProjectsDataSource {
   Future<List<AssignedProjectModel>> fetchAssignedProjects({String? filter});
   Future<AssignedProjectDetailsModel> fetchAssignedProjectDetails(String projectId);
+  // Append these two method signatures onto your existing abstract AssignedProjectsDataSource interface:
+  Future<WorkItemUpdateDetailsModel> fetchWorkItemUpdateDetails(String itemId);
+  Future<bool> submitSubSpaceProgressUpdate({
+    required String itemId,
+    required String spaceName,
+    required List<String> localImagePaths,
+  });
 }
 
 class AssignedProjectsRemoteDataSource implements AssignedProjectsDataSource {
   final DatabaseService _databaseService;
 
-  AssignedProjectsRemoteDataSource({required DatabaseService databaseService})
-      : _databaseService = databaseService;
+  AssignedProjectsRemoteDataSource(this._databaseService);
 
   @override
   Future<List<AssignedProjectModel>> fetchAssignedProjects({String? filter}) async {
     final response = await _databaseService.getData(endpoint: BackendEndPoint.projects);
     final List<dynamic> projectsList = response['data'] as List<dynamic>;
     return projectsList.map((json) => AssignedProjectModel.fromJson(json)).toList();
-
-    await Future.delayed(const Duration(milliseconds: 800));
-
-    final mockResponse = [
-      {
-        "id": "11",
-        "name": "المشروع رقم 11",
-        "location": "دمشق - المزة",
-        "status": "in_progress",
-        "progress_percent": 46,
-        "active_items_count": 3
-      },
-      {
-        "id": "14",
-        "name": "المشروع رقم 14",
-        "location": "دمشق - مشروع دمر",
-        "status": "in_progress",
-        "progress_percent": 20,
-        "active_items_count": 2
-      },
-      {
-        "id": "15",
-        "name": "المشروع رقم 15",
-        "location": "دمشق - كفرسوسة",
-        "status": "not_started",
-        "progress_percent": 0,
-        "active_items_count": 0
-      }
-    ];
-
-    return mockResponse.map((json) => AssignedProjectModel.fromJson(json)).toList();
   }
 
   @override
@@ -57,27 +33,61 @@ class AssignedProjectsRemoteDataSource implements AssignedProjectsDataSource {
     // TODO: Switch to live API endpoint execution when backend goes live:
     final response = await _databaseService.getData(endpoint: '${BackendEndPoint.projects}/$projectId/progress');
     return AssignedProjectDetailsModel.fromJson(response);
+  }
 
-    await Future.delayed(const Duration(milliseconds: 500));
+  @override
+  Future<WorkItemUpdateDetailsModel> fetchWorkItemUpdateDetails(String itemId) async {
+    await Future.delayed(const Duration(milliseconds: 400));
 
-    // Live backend JSON layout payload injected for localized preview testing
-    return AssignedProjectDetailsModel.fromJson({
-      "status": 200,
-      "message": "Project progress fetched",
-      "data": {
-        "id": int.tryParse(projectId) ?? 1,
-        "name": "المشروع رقم 11", // Overridden with localization layout string matches
-        "project_percent": 46, // Adjusted from 0 to 46 for visual parity with design specs
-        "items": [
-          {"id": 1, "name": "ملابن الأبواب", "percent": 100, "weight": "1.00", "details": [null]},
-          {"id": 2, "name": "تمديدات كهرباء", "percent": 100, "weight": "1.00", "details": []},
-          {"id": 3, "name": "تمديدات صحية", "percent": 66, "weight": "1.00", "details": [null, null]},
-          {"id": 4, "name": "طينة / لياسة", "percent": 40, "weight": "1.00", "details": [null]},
-          {"id": 5, "name": "سيراميك جدران / أسقف", "percent": 33, "weight": "1.00", "details": []},
-          {"id": 6, "name": "بلاط أرضيات", "percent": 0, "weight": "1.00", "details": []},
-          {"id": 7, "name": "أبواب ونجارة", "percent": 0, "weight": "1.00", "details": []}
-        ]
-      }
+    // Simulating endpoint matching exactly with screenshot components
+    return WorkItemUpdateDetailsModel.fromJson({
+      "item_id": int.tryParse(itemId) ?? 3,
+      "item_name": "صحية سواد",
+      "percent": 75,
+      "delay_warning": "يوجد تأخير في إنجاز بند صحية سواد يرجى تقديم طلب تمديد موضحاً الأسباب.",
+      "sub_spaces": [
+        {
+          "name": "مطبخ (Kitchen)",
+          "status": "completed",
+          "media_url": "kitchen_final.jpg",
+          "date": "12/25/2023"
+        },
+        {
+          "name": "مطبخ (Kitchen)",
+          "status": "completed",
+          "media_url": "kitchen_final.jpg",
+          "date": "12/25/2024"
+        },
+        {
+          "name": "مرحاض (Toilet)",
+          "status": "under_review",
+          "media_url": null,
+          "date": null
+        }
+      ],
+      "comments": [
+        {
+          "author": "محمد علي",
+          "text": "تم إنجاز الحمام والمطابخ بنجاح، بانتظار توريد قطع دورة المياه.",
+          "time": "اليوم"
+        },
+        {
+          "author": "محمد علي",
+          "text": "يوجد نقص بسيط في بعض الوصلات الخاصة بالمرحاض، تم التواصل مع المورد لتوفيرها في أقرب وقت.",
+          "time": "أمس"
+        }
+      ]
     });
+  }
+
+  @override
+  Future<bool> submitSubSpaceProgressUpdate({
+    required String itemId,
+    required String spaceName,
+    required List<String> localImagePaths,
+  }) async {
+    // Simulated multi-part upload form submission cycle
+    await Future.delayed(const Duration(milliseconds: 1200));
+    return true;
   }
 }

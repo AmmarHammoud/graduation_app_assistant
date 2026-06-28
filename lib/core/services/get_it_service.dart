@@ -1,45 +1,27 @@
-// import 'package:get_it/get_it.dart';
-//
-// import '../../features/auth/data/repo/auth_repo_imp.dart';
-// import '../../features/auth/domain/repo/auth_repo.dart';
-// import '../../features/profile/data/repo/profile_repo_imp.dart';
-// import '../../features/profile/domain/repo/profile_repo.dart';
-// import 'api_service.dart';
-// import 'database_service.dart';
-//
-// final getIt = GetIt.instance;
-//
-// setupSingltonGetIt() async {
-//   getIt.registerSingleton<DatabaseService>(ApiService());
-//   getIt.registerSingleton<AuthRepo>(
-//     AuthRepoImp(databaseService: getIt.get<DatabaseService>()),
-//   );
-//   getIt.registerSingleton<ProfileRepo>(
-//     ProfileRepoImp(databaseService: getIt.get<DatabaseService>()),
-//   );
-// }
-
 import 'package:get_it/get_it.dart';
 import 'package:graduation_app_assistant/features/projects/data/datasources/assigned_projects_remote_data_source.dart';
-// Existing Imports
+
+// Existing Core & Feature Imports
 import '../../features/auth/data/repo/auth_repo_imp.dart';
 import '../../features/auth/domain/repo/auth_repo.dart';
 import '../../features/profile/data/repo/profile_repo_imp.dart';
 import '../../features/profile/domain/repo/profile_repo.dart';
-import '../../features/projects/domain/usecases/get_project_details.dart';
-import '../../features/projects/presentation/cubit/assigned_project_cubit.dart';
-import '../../features/projects/presentation/cubit/assigned_project_details_cubit.dart';
 import 'api_service.dart';
 import 'database_service.dart';
 
-// New Project Feature Imports
+// Projects Feature Imports
 import '../../features/projects/data/repositories/project_repository_impl.dart';
 import '../../features/projects/domain/repositories/project_repository.dart';
 import '../../features/projects/domain/usecases/get_projects.dart';
+import '../../features/projects/domain/usecases/get_project_details.dart';
+import '../../features/projects/domain/usecases/get_work_item_update_details.dart'; // 🆕 Added
+import '../../features/projects/presentation/cubit/assigned_project_cubit.dart';
+import '../../features/projects/presentation/cubit/assigned_project_details_cubit.dart';
+import '../../features/projects/presentation/cubit/item_update_cubit.dart'; // 🆕 Added
 
 final getIt = GetIt.instance;
 
-setupSingltonGetIt() async {
+Future<void> setupSingltonGetIt() async {
   // ==========================================
   // Core Services
   // ==========================================
@@ -53,12 +35,19 @@ setupSingltonGetIt() async {
   );
 
   // ==========================================
+  // Profile Feature
+  // ==========================================
+  getIt.registerSingleton<ProfileRepo>(
+    ProfileRepoImp(databaseService: getIt.get<DatabaseService>()),
+  );
+
+  // ==========================================
   // Projects Feature
   // ==========================================
 
   // 1. Data Source
   getIt.registerLazySingleton<AssignedProjectsRemoteDataSource>(
-        () => AssignedProjectsRemoteDataSource(databaseService: getIt.get<DatabaseService>()),
+        () => AssignedProjectsRemoteDataSource(getIt.get<DatabaseService>()),
   );
 
   // 2. Repository Implementation
@@ -68,16 +57,15 @@ setupSingltonGetIt() async {
 
   // 3. Domain Use Cases
   getIt.registerLazySingleton(() => GetProjects(getIt.get<ProjectRepository>()));
-
-  // 4. Presentation Cubit (Factory ensures a fresh instance per page view lifecycle)
-  getIt.registerFactory(() => AssignedProjectsCubit(getProjects: getIt.get<GetProjects>()));
-
-  // Add this inside setupSingltonGetIt()
   getIt.registerLazySingleton(() => GetProjectDetails(getIt.get<ProjectRepository>()));
+  getIt.registerLazySingleton(() => GetWorkItemUpdateDetails(getIt.get<AssignedProjectsRemoteDataSource>())); // 🆕 Fixed DI Type mismatch
+
+  // 4. Presentation Cubits (Factories ensure fresh instances per view lifecycle)
+  getIt.registerFactory(() => AssignedProjectsCubit(getProjects: getIt.get<GetProjects>()));
   getIt.registerFactory(() => AssignedProjectDetailsCubit(getProjectDetails: getIt.get<GetProjectDetails>()));
 
-
-  getIt.registerSingleton<ProfileRepo>(
-    ProfileRepoImp(databaseService: getIt.get<DatabaseService>()),
-  );
+  // 🆕 Added Item Update Cubit
+  getIt.registerFactory(() => ItemUpdateCubit(
+    getWorkItemUpdateDetails: getIt.get<GetWorkItemUpdateDetails>(),
+  ));
 }

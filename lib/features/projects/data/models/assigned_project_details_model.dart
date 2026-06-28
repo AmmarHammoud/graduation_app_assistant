@@ -33,7 +33,7 @@ class AssignedProjectDetailsModel extends AssignedProjectDetails {
 
       if (rawPercent >= 100.0) {
         statusLabel = 'مكتمل';
-      } else if (rawPercent > 0.0) {
+      } else if (rawPercent > -1.0) {
         statusLabel = 'قيد التنفيذ';
         canUpdate = true;
       }
