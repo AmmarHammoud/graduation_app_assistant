@@ -50,10 +50,13 @@ class ProjectImagesRemoteDataSourceImpl implements ProjectImagesRemoteDataSource
   @override
   Future<bool> deleteProjectImage(int id) async {
     try {
-      await _databaseService.deleteData(
-        endpoint: 'project-images',
+      final response = await _databaseService.deleteData(
+        endpoint: 'deleteimage',
         rowid: '/$id',
       );
+      if (response != null && response is Map<String, dynamic>) {
+        return response['success'] == true;
+      }
       return true;
     } catch (e) {
       // Fallback to true if delete endpoint isn't fully operational in backend

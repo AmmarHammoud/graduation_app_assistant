@@ -277,21 +277,21 @@ class _AiVisualizationsPageState extends State<AiVisualizationsPage> {
             );
           },
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => _showCreateVisualizationBottomSheet(context),
-          backgroundColor: AppColors.accentGold,
-          icon: const Icon(Icons.auto_awesome_outlined, color: Colors.black),
-          label: const Text(
-            'توليد تصميم إبداعي',
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              fontFamily: 'Tajawal',
-            ),
-          ),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+        // floatingActionButton: FloatingActionButton.extended(
+        //   onPressed: () => _showCreateVisualizationBottomSheet(context),
+        //   backgroundColor: AppColors.accentGold,
+        //   icon: const Icon(Icons.auto_awesome_outlined, color: Colors.black),
+        //   label: const Text(
+        //     'توليد تصميم إبداعي',
+        //     style: TextStyle(
+        //       color: Colors.black,
+        //       fontWeight: FontWeight.bold,
+        //       fontSize: 14,
+        //       fontFamily: 'Tajawal',
+        //     ),
+        //   ),
+        // ),
+        // floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       ),
     );
   }
@@ -532,6 +532,8 @@ class _AiVisualizationsPageState extends State<AiVisualizationsPage> {
     final List<String> selectedLocalReferencePaths = [];
     final formKey = GlobalKey<FormState>();
 
+    final aiCubit = context.read<AiVisualizationCubit>();
+
     // Grab available unit images
     List<ProjectImageEntity> availableImages = [];
     final projectImagesState = context.read<ProjectImagesCubit>().state;
@@ -562,13 +564,13 @@ class _AiVisualizationsPageState extends State<AiVisualizationsPage> {
       ),
       builder: (bottomSheetContext) {
         return StatefulBuilder(
-          builder: (context, setSheetState) {
+          builder: (sheetContext, setSheetState) {
             return Directionality(
               textDirection: TextDirection.rtl,
               child: SafeArea(
                 child: Padding(
                   padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                    bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 20,
                     top: 20,
                     left: 20,
                     right: 20,
@@ -843,7 +845,7 @@ class _AiVisualizationsPageState extends State<AiVisualizationsPage> {
                                 final chosenImageId = selectedImage?.id ?? 1; // Fallback helper
 
                                 // Trigger generator with both prompt and picked reference images
-                                context.read<AiVisualizationCubit>().generateVisualization(
+                                aiCubit.generateVisualization(
                                       projectId: widget.projectId,
                                       projectImageId: chosenImageId,
                                       prompt: promptController.text.trim(),

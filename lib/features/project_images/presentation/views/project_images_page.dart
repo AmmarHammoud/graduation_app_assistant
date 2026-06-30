@@ -131,9 +131,11 @@ class _ProjectImagesPageState extends State<ProjectImagesPage> {
 
   // Triggers deletion verification popup
   void _confirmDeletion(int imageId) {
+    final cubit = context.read<ProjectImagesCubit>();
+
     showDialog(
       context: context,
-      builder: (context) => Directionality(
+      builder: (dialogContext) => Directionality(
         textDirection: TextDirection.rtl,
         child: AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -141,16 +143,16 @@ class _ProjectImagesPageState extends State<ProjectImagesPage> {
           content: const Text('هل أنت متأكد من رغبتك في حذف هذه الصورة نهائياً؟'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('إلغاء', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
-                context.read<ProjectImagesCubit>().deleteImage(
-                      imageId: imageId,
-                      projectId: widget.projectId,
-                    );
+                Navigator.pop(dialogContext);
+                cubit.deleteImage(
+                  imageId: imageId,
+                  projectId: widget.projectId,
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent,
