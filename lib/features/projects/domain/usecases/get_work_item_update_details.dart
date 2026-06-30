@@ -6,7 +6,15 @@ class GetWorkItemUpdateDetails {
 
   GetWorkItemUpdateDetails(this.repository);
 
-  Future<WorkItemUpdateDetailsModel> call(String itemId) async {
-    return await repository.fetchWorkItemUpdateDetails(itemId);
+  Future<WorkItemUpdateDetailsModel> call({
+    required String projectId,
+    required String itemId,
+    required String itemName,
+  }) async {
+    return await repository.fetchWorkItemUpdateDetails(
+      projectId: projectId,
+      itemId: itemId,
+      itemName: itemName,
+    );
   }
 }

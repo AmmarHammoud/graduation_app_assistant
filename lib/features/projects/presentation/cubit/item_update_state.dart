@@ -12,21 +12,29 @@ class ItemUpdateInitial extends ItemUpdateState {}
 class ItemUpdateLoading extends ItemUpdateState {}
 class ItemUpdateLoaded extends ItemUpdateState {
   final WorkItemUpdateDetails data;
-  final List<String> chosenImages;
-  final bool isSubmitting;
+  final Map<int, List<String>> chosenImagesBySpace;
+  final Set<int> submittingSpaceIds;
 
-  const ItemUpdateLoaded({required this.data, this.chosenImages = const [], this.isSubmitting = false});
+  const ItemUpdateLoaded({
+    required this.data,
+    this.chosenImagesBySpace = const {},
+    this.submittingSpaceIds = const {},
+  });
 
-  ItemUpdateLoaded copyWith({WorkItemUpdateDetails? data, List<String>? chosenImages, bool? isSubmitting}) {
+  ItemUpdateLoaded copyWith({
+    WorkItemUpdateDetails? data,
+    Map<int, List<String>>? chosenImagesBySpace,
+    Set<int>? submittingSpaceIds,
+  }) {
     return ItemUpdateLoaded(
       data: data ?? this.data,
-      chosenImages: chosenImages ?? this.chosenImages,
-      isSubmitting: isSubmitting ?? this.isSubmitting,
+      chosenImagesBySpace: chosenImagesBySpace ?? this.chosenImagesBySpace,
+      submittingSpaceIds: submittingSpaceIds ?? this.submittingSpaceIds,
     );
   }
 
   @override
-  List<Object?> get props => [data, chosenImages, isSubmitting];
+  List<Object?> get props => [data, chosenImagesBySpace, submittingSpaceIds];
 }
 class ItemUpdateSuccess extends ItemUpdateState {}
 class ItemUpdateError extends ItemUpdateState {

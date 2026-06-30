@@ -2,13 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/services/get_it_service.dart';
+import '../../../../comments/presentation/cubits/comment_cubit.dart';
+import '../../../../comments/presentation/views/work_item_comments_page.dart';
 import '../../../domain/entities/assigned_proejct_details.dart';
 import '../../cubit/item_update_cubit.dart';
 import '../update_project_progress_page.dart';
 
 class WorkItemTaskList extends StatelessWidget {
   final List<AssistantWorkItemEntity> workItems;
-  const WorkItemTaskList({super.key, required this.workItems});
+  final String projectId;
+
+  const WorkItemTaskList({
+    super.key,
+    required this.workItems,
+    required this.projectId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -92,11 +100,36 @@ class WorkItemTaskList extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 12),
-                            Icon(Icons.chat_bubble_outline_rounded, size: 14, color: Colors.grey.shade400),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${item.commentCount}',
-                              style: TextStyle(color: Colors.grey.shade400, fontSize: 12, fontWeight: FontWeight.bold),
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => BlocProvider(
+                                      create: (context) => getIt<CommentCubit>()..loadComments(workItemId: item.id),
+                                      child: WorkItemCommentsPage(
+                                        workItemId: item.id,
+                                        workItemName: item.name,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.chat_bubble_outline_rounded, size: 15, color: Colors.grey.shade500),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      '${item.commentCount}',
+                                      style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ],
                         )
@@ -111,10 +144,20 @@ class WorkItemTaskList extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => BlocProvider(
-                              // We initialize the factory and cascade call loadItemDetails passing the item's ID
-                              create: (context) => getIt<ItemUpdateCubit>()..loadItemDetails(item.id.toString()),
-                              child: const UpdateProjectProgressPage(),
+                            builder: (_) => MultiBlocProvider(
+                              providers: [
+                                BlocProvider(
+                                  create: (context) => getIt<ItemUpdateCubit>()..loadItemDetails(
+                                    itemId: item.id.toString(),
+                                    projectId: projectId,
+                                    itemName: item.name,
+                                  ),
+                                ),
+                                BlocProvider(
+                                  create: (context) => getIt<CommentCubit>()..loadComments(workItemId: item.id),
+                                ),
+                              ],
+                              child: UpdateProjectProgressPage(workItemId: item.id),
                             ),
                           ),
                         );

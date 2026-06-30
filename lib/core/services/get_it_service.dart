@@ -41,6 +41,14 @@ import '../../features/ai_visualization/data/repositories/ai_visualization_repos
 import '../../features/ai_visualization/domain/repositories/ai_visualization_repository.dart';
 import '../../features/ai_visualization/presentation/cubits/ai_visualization_cubit.dart';
 
+// Comments Feature Imports
+import '../../features/comments/data/datasources/comment_remote_data_source.dart';
+import '../../features/comments/data/repositories/comment_repository_impl.dart';
+import '../../features/comments/domain/repositories/comment_repository.dart';
+import '../../features/comments/domain/usecases/add_comment_usecase.dart';
+import '../../features/comments/domain/usecases/get_comments_usecase.dart';
+import '../../features/comments/presentation/cubits/comment_cubit.dart';
+
 final getIt = GetIt.instance;
 
 Future<void> setupSingltonGetIt() async {
@@ -163,5 +171,29 @@ Future<void> setupSingltonGetIt() async {
   getIt.registerFactory(() => AiVisualizationCubit(
     getVisualizationsUseCase: getIt.get<GetVisualizationsUseCase>(),
     createVisualizationUseCase: getIt.get<CreateVisualizationUseCase>(),
+  ));
+
+  // ==========================================
+  // Comments Feature (🆕 Added)
+  // ==========================================
+
+  // 1. Data Source
+  getIt.registerLazySingleton<CommentRemoteDataSource>(
+    () => CommentRemoteDataSourceImpl(getIt.get<DatabaseService>()),
+  );
+
+  // 2. Repository
+  getIt.registerLazySingleton<CommentRepository>(
+    () => CommentRepositoryImpl(remoteDataSource: getIt.get<CommentRemoteDataSource>()),
+  );
+
+  // 3. Domain Use Cases
+  getIt.registerLazySingleton(() => GetCommentsUseCase(getIt.get<CommentRepository>()));
+  getIt.registerLazySingleton(() => AddCommentUseCase(getIt.get<CommentRepository>()));
+
+  // 4. Presentation Cubit Factory
+  getIt.registerFactory(() => CommentCubit(
+    getCommentsUseCase: getIt.get<GetCommentsUseCase>(),
+    addCommentUseCase: getIt.get<AddCommentUseCase>(),
   ));
 }

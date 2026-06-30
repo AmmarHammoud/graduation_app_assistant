@@ -7,42 +7,72 @@ import 'item_update_state.dart';
 class ItemUpdateCubit extends Cubit<ItemUpdateState> {
   final GetWorkItemUpdateDetails getWorkItemUpdateDetails;
 
+  String? projectId;
+
   ItemUpdateCubit({
     required this.getWorkItemUpdateDetails,
   }) : super(ItemUpdateInitial());
 
-  Future<void> loadItemDetails(String itemId) async {
+  Future<void> loadItemDetails({
+    required String itemId,
+    required String projectId,
+    required String itemName,
+  }) async {
+    this.projectId = projectId;
     emit(ItemUpdateLoading());
     try {
-      final details = await getWorkItemUpdateDetails(itemId);
+      final details = await getWorkItemUpdateDetails(
+        projectId: projectId,
+        itemId: itemId,
+        itemName: itemName,
+      );
       emit(ItemUpdateLoaded(data: details));
     } catch (_) {
       emit(const ItemUpdateError('فشل جلب تفاصيل تحديث البند'));
     }
   }
 
-  void selectImages(List<String> paths) {
+  void selectImages(int spaceId, List<String> paths) {
     if (state is! ItemUpdateLoaded) return;
     final curr = state as ItemUpdateLoaded;
-    emit(
-      curr.copyWith(chosenImages: List.from(curr.chosenImages)..addAll(paths)),
-    );
+    final updatedMap = Map<int, List<String>>.from(curr.chosenImagesBySpace);
+    final currentImages = updatedMap[spaceId] ?? [];
+    updatedMap[spaceId] = List.from(currentImages)..addAll(paths);
+    emit(curr.copyWith(chosenImagesBySpace: updatedMap));
   }
 
-  Future<void> sendRequestToAdmin(String spaceName) async {
+  Future<void> sendRequestToAdmin(SubSpaceItemEntity space) async {
     if (state is! ItemUpdateLoaded) return;
     final curr = state as ItemUpdateLoaded;
 
-    emit(curr.copyWith(isSubmitting: true));
+    emit(curr.copyWith(
+      submittingSpaceIds: Set<int>.from(curr.submittingSpaceIds)..add(space.id),
+    ));
     try {
-      await getWorkItemUpdateDetails.repository.submitSubSpaceProgressUpdate(
+      final spaceImages = curr.chosenImagesBySpace[space.id] ?? [];
+      final success = await getWorkItemUpdateDetails.repository.submitSubSpaceProgressUpdate(
+        projectId: projectId ?? '',
         itemId: curr.data.itemId.toString(),
-        spaceName: spaceName,
-        localImagePaths: curr.chosenImages,
+        spaceId: space.id,
+        localImagePaths: spaceImages,
       );
-      emit(ItemUpdateSuccess());
+      if (success) {
+        emit(ItemUpdateSuccess());
+      } else {
+        if (state is ItemUpdateLoaded) {
+          final updatedCurr = state as ItemUpdateLoaded;
+          emit(updatedCurr.copyWith(
+            submittingSpaceIds: Set<int>.from(updatedCurr.submittingSpaceIds)..remove(space.id),
+          ));
+        }
+      }
     } catch (_) {
-      emit(curr.copyWith(isSubmitting: false));
+      if (state is ItemUpdateLoaded) {
+        final updatedCurr = state as ItemUpdateLoaded;
+        emit(updatedCurr.copyWith(
+          submittingSpaceIds: Set<int>.from(updatedCurr.submittingSpaceIds)..remove(space.id),
+        ));
+      }
     }
   }
 

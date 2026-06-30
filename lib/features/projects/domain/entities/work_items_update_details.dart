@@ -22,12 +22,14 @@ class WorkItemUpdateDetails extends Equatable {
 }
 
 class SubSpaceItemEntity extends Equatable {
+  final int id;
   final String spaceName; // e.g., "مطبخ (Kitchen)"
   final String statusLabel; // "مكتمل", "قيد المراجعة", "لم يتم الرفع"
   final String? uploadedMediaUrl;
   final String? uploadDate;
 
   const SubSpaceItemEntity({
+    required this.id,
     required this.spaceName,
     required this.statusLabel,
     this.uploadedMediaUrl,
@@ -35,7 +37,7 @@ class SubSpaceItemEntity extends Equatable {
   });
 
   @override
-  List<Object?> get props => [spaceName, statusLabel, uploadedMediaUrl, uploadDate];
+  List<Object?> get props => [id, spaceName, statusLabel, uploadedMediaUrl, uploadDate];
 }
 
 class UpdateCommentEntity extends Equatable {

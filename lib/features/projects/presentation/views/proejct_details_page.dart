@@ -169,7 +169,7 @@ class AssistantProjectDetailsPage extends StatelessWidget {
                       ],
                     ),
                   ),
-                  WorkItemTaskList(workItems: details.workItems)
+                  WorkItemTaskList(workItems: details.workItems, projectId: details.id)
                 ],
               );
             }

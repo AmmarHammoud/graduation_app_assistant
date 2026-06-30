@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:graduation_app_assistant/features/projects/data/models/assigned_project_details_model.dart';
 import '../../../../core/services/database_service.dart';
 import '../../../../core/utils/backend_endpoints.dart';
@@ -10,10 +11,15 @@ abstract class AssignedProjectsDataSource {
   Future<List<AssignedProjectModel>> fetchAssignedProjects({String? filter});
   Future<AssignedProjectDetailsModel> fetchAssignedProjectDetails(String projectId);
   // Append these two method signatures onto your existing abstract AssignedProjectsDataSource interface:
-  Future<WorkItemUpdateDetailsModel> fetchWorkItemUpdateDetails(String itemId);
-  Future<bool> submitSubSpaceProgressUpdate({
+  Future<WorkItemUpdateDetailsModel> fetchWorkItemUpdateDetails({
+    required String projectId,
     required String itemId,
-    required String spaceName,
+    required String itemName,
+  });
+  Future<bool> submitSubSpaceProgressUpdate({
+    required String projectId,
+    required String itemId,
+    required int spaceId,
     required List<String> localImagePaths,
   });
   Future<List<ProjectSpaceModel>> fetchProjectSpaces(String projectId);
@@ -42,59 +48,56 @@ class AssignedProjectsRemoteDataSource implements AssignedProjectsDataSource {
   }
 
   @override
-  Future<WorkItemUpdateDetailsModel> fetchWorkItemUpdateDetails(String itemId) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+  Future<WorkItemUpdateDetailsModel> fetchWorkItemUpdateDetails({
+    required String projectId,
+    required String itemId,
+    required String itemName,
+  }) async {
+    final response = await _databaseService.getData(
+      endpoint: '${BackendEndPoint.projects}/$projectId/work-items/$itemId/spaces-progress',
+    );
 
-    // Simulating endpoint matching exactly with screenshot components
-    return WorkItemUpdateDetailsModel.fromJson({
-      "item_id": int.tryParse(itemId) ?? 3,
-      "item_name": "صحية سواد",
-      "percent": 75,
-      "delay_warning": "يوجد تأخير في إنجاز بند صحية سواد يرجى تقديم طلب تمديد موضحاً الأسباب.",
-      "sub_spaces": [
-        {
-          "name": "مطبخ (Kitchen)",
-          "status": "completed",
-          "media_url": "kitchen_final.jpg",
-          "date": "12/25/2023"
-        },
-        {
-          "name": "مطبخ (Kitchen)",
-          "status": "completed",
-          "media_url": "kitchen_final.jpg",
-          "date": "12/25/2024"
-        },
-        {
-          "name": "مرحاض (Toilet)",
-          "status": "under_review",
-          "media_url": null,
-          "date": null
-        }
-      ],
-      "comments": [
-        {
-          "author": "محمد علي",
-          "text": "تم إنجاز الحمام والمطابخ بنجاح، بانتظار توريد قطع دورة المياه.",
-          "time": "اليوم"
-        },
-        {
-          "author": "محمد علي",
-          "text": "يوجد نقص بسيط في بعض الوصلات الخاصة بالمرحاض، تم التواصل مع المورد لتوفيرها في أقرب وقت.",
-          "time": "أمس"
-        }
-      ]
-    });
+    return WorkItemUpdateDetailsModel.fromResponse(
+      json: response as Map<String, dynamic>,
+      itemId: int.tryParse(itemId) ?? 0,
+      itemName: itemName,
+    );
   }
 
   @override
   Future<bool> submitSubSpaceProgressUpdate({
+    required String projectId,
     required String itemId,
-    required String spaceName,
+    required int spaceId,
     required List<String> localImagePaths,
   }) async {
-    // Simulated multi-part upload form submission cycle
-    await Future.delayed(const Duration(milliseconds: 1200));
-    return true;
+    final Map<String, dynamic> dataMap = {
+      'completed': 1,
+    };
+
+    if (localImagePaths.isNotEmpty) {
+      final List<MultipartFile> files = [];
+      for (final path in localImagePaths) {
+        if (path.isNotEmpty) {
+          final fileName = path.split('/').last;
+          files.add(await MultipartFile.fromFile(path, filename: fileName));
+        }
+      }
+      dataMap['photos[]'] = files;
+    }
+
+    final formData = FormData.fromMap(dataMap);
+
+    final response = await _databaseService.addData(
+      endpoint: '${BackendEndPoint.projects}/$projectId/work-items/$itemId/progress-requests/room/$spaceId',
+      data: formData,
+    );
+
+    if (response is Map<String, dynamic>) {
+      final status = response['status'] as int?;
+      return status == 201;
+    }
+    return false;
   }
 
   @override

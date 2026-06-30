@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 
+import '../../../comments/domain/entities/comment_entity.dart';
+import '../../../comments/presentation/cubits/comment_cubit.dart';
+import '../../../comments/presentation/cubits/comment_state.dart';
 import '../../domain/entities/work_items_update_details.dart';
 import '../cubit/item_update_cubit.dart';
 import '../cubit/item_update_state.dart';
 
 class UpdateProjectProgressPage extends StatefulWidget {
-  const  UpdateProjectProgressPage({super.key});
+  final int workItemId;
+
+  const UpdateProjectProgressPage({
+    super.key,
+    required this.workItemId,
+  });
 
   @override
   State<UpdateProjectProgressPage> createState() => _UpdateProjectProgressPageState();
@@ -21,6 +30,49 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
     _commentController = TextEditingController();
   }
 
+  Future<void> _pickImage(BuildContext context, int spaceId) async {
+    final ImagePicker picker = ImagePicker();
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext sheetContext) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: SafeArea(
+            child: Wrap(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.camera_alt_outlined, color: Color(0xFF006D5B)),
+                  title: const Text('التقاط صورة بالكاميرا', style: TextStyle(fontWeight: FontWeight.w600)),
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    final XFile? photo = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+                    if (photo != null && context.mounted) {
+                      context.read<ItemUpdateCubit>().selectImages(spaceId, [photo.path]);
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_library_outlined, color: Color(0xFF006D5B)),
+                  title: const Text('اختيار من معرض الصور', style: TextStyle(fontWeight: FontWeight.w600)),
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+                    if (image != null && context.mounted) {
+                      context.read<ItemUpdateCubit>().selectImages(spaceId, [image.path]);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _commentController.dispose();
@@ -30,7 +82,10 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
   void _submitComment(BuildContext context) {
     final text = _commentController.text;
     if (text.trim().isNotEmpty) {
-      context.read<ItemUpdateCubit>().addComment(text);
+      context.read<CommentCubit>().addComment(
+            workItemId: widget.workItemId,
+            comment: text,
+          );
       _commentController.clear();
       FocusScope.of(context).unfocus();
     }
@@ -103,7 +158,60 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
                     style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                   const SizedBox(height: 12),
-                  ...state.data.managerComments.map((c) => _buildCommentTile(c)),
+                  BlocConsumer<CommentCubit, CommentState>(
+                    listener: (context, commentState) {
+                      if (commentState is CommentError) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              commentState.message,
+                              style: const TextStyle(fontFamily: 'Tajawal'),
+                            ),
+                            backgroundColor: Colors.redAccent,
+                          ),
+                        );
+                      }
+                    },
+                    builder: (context, commentState) {
+                      if (commentState is CommentLoading) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: CircularProgressIndicator(color: Color(0xFF006D5B)),
+                          ),
+                        );
+                      }
+
+                      List<CommentEntity> comments = [];
+                      if (commentState is CommentLoaded) {
+                        comments = commentState.comments;
+                      } else if (commentState is CommentSending) {
+                        comments = commentState.currentComments;
+                      }
+
+                      if (comments.isEmpty) {
+                        return Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'لا توجد تعليقات بعد لهذا البند.',
+                              style: TextStyle(fontFamily: 'Tajawal', color: Color(0xFF64748B), fontSize: 13),
+                            ),
+                          ),
+                        );
+                      }
+
+                      return Column(
+                        children: comments.map((c) => _buildRealCommentTile(c)).toList(),
+                      );
+                    },
+                  ),
                   const SizedBox(height: 16),
                   _buildNewCommentInputField(context),
                   const SizedBox(height: 32),
@@ -477,7 +585,7 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
           else ...[
             // Dashed border style representation for file upload
             GestureDetector(
-              onTap: () => context.read<ItemUpdateCubit>().selectImages(['kitchen_final.jpg']),
+              onTap: () => _pickImage(context, space.id),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 24),
@@ -514,97 +622,65 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
               ),
             ),
 
-            if (state.chosenImages.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0FDF4),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFDCFCE7)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.check_circle_outline_rounded, color: Colors.green, size: 18),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'تم اختيار صورة: ${state.chosenImages.last}',
-                        style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.w500),
-                      ),
+            (() {
+              final spaceImages = state.chosenImagesBySpace[space.id] ?? [];
+              if (spaceImages.isNotEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0FDF4),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFDCFCE7)),
                     ),
-                  ],
-                ),
-              ),
-            ],
+                    child: Row(
+                      children: [
+                        const Icon(Icons.check_circle_outline_rounded, color: Colors.green, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'تم اختيار صورة: ${spaceImages.last.split('/').last}',
+                            style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            })(),
 
             const SizedBox(height: 16),
 
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: state.isSubmitting ? null : () => context.read<ItemUpdateCubit>().sendRequestToAdmin(space.spaceName),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF64748B), // Slate grey button as per screenshot
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  elevation: 0,
+            (() {
+              final isThisSpaceSubmitting = state.submittingSpaceIds.contains(space.id);
+              return SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: isThisSpaceSubmitting ? null : () => context.read<ItemUpdateCubit>().sendRequestToAdmin(space),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF64748B), // Slate grey button as per screenshot
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    elevation: 0,
+                  ),
+                  child: isThisSpaceSubmitting
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.send_rounded, size: 16),
+                            SizedBox(width: 8),
+                            Text('إرسال للمراجعة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          ],
+                        ),
                 ),
-                child: state.isSubmitting
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.send_rounded, size: 16),
-                          SizedBox(width: 8),
-                          Text('إرسال للمراجعة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                        ],
-                      ),
-              ),
-            )
+              );
+            })()
           ]
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCommentTile(UpdateCommentEntity comment) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.01),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                comment.authorName,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A)),
-              ),
-              Text(
-                comment.relativeTime,
-                style: TextStyle(color: Colors.grey.shade400, fontSize: 11),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            comment.commentText,
-            style: const TextStyle(color: Color(0xFF475569), fontSize: 12, height: 1.5),
-          ),
         ],
       ),
     );
@@ -639,18 +715,141 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
           ),
         ),
         const SizedBox(width: 8),
-        GestureDetector(
-          onTap: () => _submitComment(context),
-          child: CircleAvatar(
-            radius: 22,
-            backgroundColor: const Color(0xFF0F172A),
-            child: Transform.scale(
-              scaleX: -1, // Mirrors the send icon to point to the left in RTL text flow
-              child: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
-            ),
-          ),
-        )
+        BlocBuilder<CommentCubit, CommentState>(
+          builder: (context, commentState) {
+            final isSending = commentState is CommentSending;
+            return GestureDetector(
+              onTap: isSending ? null : () => _submitComment(context),
+              child: CircleAvatar(
+                radius: 22,
+                backgroundColor: isSending ? Colors.grey.shade400 : const Color(0xFF0F172A),
+                child: isSending
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : Transform.scale(
+                        scaleX: -1, // Mirrors the send icon to point to the left in RTL text flow
+                        child: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                      ),
+              ),
+            );
+          },
+        ),
       ],
     );
+  }
+
+  Widget _buildRealCommentTile(CommentEntity comment) {
+    final isMe = comment.user.name.contains('Assistant') || comment.user.internalId.contains('asst');
+    final bubbleColor = isMe ? const Color(0xFFE6F7F4) : Colors.white;
+    final textColor = isMe ? const Color(0xFF0F172A) : const Color(0xFF1E293B);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: bubbleColor,
+        borderRadius: BorderRadius.circular(16),
+        border: isMe ? null : Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.015),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    comment.user.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A)),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: isMe ? const Color(0xFFCCF2ED) : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      comment.user.internalId,
+                      style: TextStyle(
+                        fontFamily: 'Tajawal',
+                        fontSize: 9,
+                        color: isMe ? const Color(0xFF006D5B) : const Color(0xFF64748B),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                _formatArabicDate(comment.createdAt),
+                style: TextStyle(color: Colors.grey.shade400, fontSize: 11),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            comment.comment,
+            style: TextStyle(color: textColor, fontSize: 12, height: 1.5),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatArabicDate(String dateStr) {
+    try {
+      final dateTime = DateTime.parse(dateStr).toLocal();
+      final now = DateTime.now();
+
+      final hour = dateTime.hour > 12
+          ? dateTime.hour - 12
+          : (dateTime.hour == 0 ? 12 : dateTime.hour);
+      final period = dateTime.hour >= 12 ? 'م' : 'ص';
+      final minute = dateTime.minute.toString().padLeft(2, '0');
+      final timeStr = '$hour:$minute $period';
+
+      if (dateTime.year == now.year &&
+          dateTime.month == now.month &&
+          dateTime.day == now.day) {
+        return 'اليوم، $timeStr';
+      } else if (dateTime.year == now.year &&
+          dateTime.month == now.month &&
+          dateTime.day == now.day - 1) {
+        return 'أمس، $timeStr';
+      } else {
+        final months = [
+          'يناير',
+          'فبراير',
+          'مارس',
+          'أبريل',
+          'مايو',
+          'يونيو',
+          'يوليو',
+          'أغسطس',
+          'سبتمبر',
+          'أكتوبر',
+          'نوفمبر',
+          'ديسمبر'
+        ];
+        return '${dateTime.day} ${months[dateTime.month - 1]} ${dateTime.year}، $timeStr';
+      }
+    } catch (e) {
+      return dateStr;
+    }
   }
 }
