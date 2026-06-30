@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
@@ -7,9 +8,12 @@ import 'package:graduation_app_assistant/features/auth/presentation/views/sign_i
 
 
 import 'core/services/app_logger.dart';
+import 'core/services/fcm_notification_service.dart';
 import 'core/services/get_it_service.dart';
+import 'core/services/local_notification_service.dart';
 import 'features/projects/presentation/cubit/assigned_project_cubit.dart';
 import 'features/projects/presentation/views/project_dashboard_page.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,14 +30,16 @@ void main() async {
     AppLogger.instance.error('FlutterError', details.exception, details.stack);
   };
 
-  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  //
-  // LocalNotificationService localNotificationService = LocalNotificationService();
-  //
-  // await localNotificationService.initNotification();
-  //
-  // FCMNotificationsService fcmService = FCMNotificationsService();
-  // await fcmService.initPushNotifications();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  LocalNotificationService localNotificationService = LocalNotificationService();
+
+  await localNotificationService.initNotification();
+
+  FCMNotificationsService fcmService = FCMNotificationsService();
+  await fcmService.initPushNotifications();
 
   // Initialize DI
   setupSingltonGetIt();
