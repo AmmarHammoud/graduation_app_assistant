@@ -4,6 +4,8 @@ import 'package:graduation_app_assistant/features/project_images/presentation/cu
 import 'package:graduation_app_assistant/features/project_images/presentation/views/project_images_page.dart';
 import 'package:graduation_app_assistant/features/expenses/presentation/cubits/expenses_cubit.dart';
 import 'package:graduation_app_assistant/features/expenses/presentation/views/expenses_page.dart';
+import 'package:graduation_app_assistant/features/ai_visualization/presentation/cubits/ai_visualization_cubit.dart';
+import 'package:graduation_app_assistant/features/ai_visualization/presentation/views/ai_visualizations_page.dart';
 import 'package:graduation_app_assistant/features/projects/presentation/views/project_details_widgets/progress_header_card.dart';
 import 'package:graduation_app_assistant/features/projects/presentation/views/project_details_widgets/supervisor_card.dart';
 import 'package:graduation_app_assistant/features/projects/presentation/views/project_details_widgets/work_item_task_list.dart';
@@ -101,6 +103,48 @@ class AssistantProjectDetailsPage extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => MultiBlocProvider(
+                              providers: [
+                                BlocProvider(
+                                  create: (context) => getIt<AiVisualizationCubit>(),
+                                ),
+                                BlocProvider(
+                                  create: (context) => getIt<ProjectImagesCubit>()..loadImages(details.id),
+                                ),
+                              ],
+                              child: AiVisualizationsPage(
+                                projectId: details.id,
+                                projectName: details.title,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.auto_awesome_outlined, size: 18, color: Colors.white),
+                      label: const Text(
+                        'تصاميم الذكاء الاصطناعي',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontFamily: 'Tajawal',
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF042623), // Beautiful primary dark green
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        elevation: 0,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 12),
 

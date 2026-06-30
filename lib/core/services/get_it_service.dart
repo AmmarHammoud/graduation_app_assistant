@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:graduation_app_assistant/features/projects/data/datasources/assigned_projects_remote_data_source.dart';
 
 // Existing Core & Feature Imports
+import '../../features/ai_visualization/domain/usecases/ai_visualization_usecases.dart';
 import '../../features/auth/data/repo/auth_repo_imp.dart';
 import '../../features/auth/domain/repo/auth_repo.dart';
 import '../../features/profile/data/repo/profile_repo_imp.dart';
@@ -33,6 +34,12 @@ import '../../features/expenses/domain/repositories/expenses_repository.dart';
 import '../../features/expenses/domain/usecases/add_expense_usecase.dart';
 import '../../features/expenses/domain/usecases/get_expenses_usecase.dart';
 import '../../features/expenses/presentation/cubits/expenses_cubit.dart';
+
+// AI Visualizations Feature Imports
+import '../../features/ai_visualization/data/datasources/ai_visualization_remote_data_source.dart';
+import '../../features/ai_visualization/data/repositories/ai_visualization_repository_impl.dart';
+import '../../features/ai_visualization/domain/repositories/ai_visualization_repository.dart';
+import '../../features/ai_visualization/presentation/cubits/ai_visualization_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -132,5 +139,29 @@ Future<void> setupSingltonGetIt() async {
   getIt.registerFactory(() => ExpensesCubit(
     addExpenseUseCase: getIt.get<AddExpenseUseCase>(),
     getExpensesUseCase: getIt.get<GetExpensesUseCase>(),
+  ));
+
+  // ==========================================
+  // AI Visualizations Feature (🆕 Added)
+  // ==========================================
+
+  // 1. Data Source
+  getIt.registerLazySingleton<AiVisualizationRemoteDataSource>(
+    () => AiVisualizationRemoteDataSourceImpl(getIt.get<DatabaseService>()),
+  );
+
+  // 2. Repository
+  getIt.registerLazySingleton<AiVisualizationRepository>(
+    () => AiVisualizationRepositoryImpl(remoteDataSource: getIt.get<AiVisualizationRemoteDataSource>()),
+  );
+
+  // 3. Domain Use Cases
+  getIt.registerLazySingleton(() => GetVisualizationsUseCase(getIt.get<AiVisualizationRepository>()));
+  getIt.registerLazySingleton(() => CreateVisualizationUseCase(getIt.get<AiVisualizationRepository>()));
+
+  // 4. Presentation Cubit Factory
+  getIt.registerFactory(() => AiVisualizationCubit(
+    getVisualizationsUseCase: getIt.get<GetVisualizationsUseCase>(),
+    createVisualizationUseCase: getIt.get<CreateVisualizationUseCase>(),
   ));
 }
