@@ -80,7 +80,7 @@ class AssistantProjectDetailsPage extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (_) => BlocProvider(
-                                  create: (context) => getIt<ExpensesCubit>()..loadInitialExpenses(),
+                                  create: (context) => getIt<ExpensesCubit>(),
                                   child: ExpensesPage(
                                     projectId: details.id,
                                     projectName: details.title,

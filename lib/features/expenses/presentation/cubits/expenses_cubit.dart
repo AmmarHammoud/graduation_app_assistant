@@ -1,12 +1,22 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../projects/domain/entities/assigned_proejct_details.dart';
 import '../../domain/usecases/add_expense_usecase.dart';
+import '../../domain/usecases/get_expenses_usecase.dart';
 import '../../domain/entities/expense_entity.dart';
 import 'expenses_state.dart';
 
 class ExpensesCubit extends Cubit<ExpensesState> {
   final AddExpenseUseCase addExpenseUseCase;
+  final GetExpensesUseCase getExpensesUseCase;
 
-  ExpensesCubit({required this.addExpenseUseCase}) : super(ExpensesInitial());
+  ExpensesCubit({
+    required this.addExpenseUseCase,
+    required this.getExpensesUseCase,
+  }) : super(ExpensesInitial());
+
+  void loadEmptyExpenses() {
+    emit(const ExpensesLoaded(expenses: []));
+  }
 
   // Set up initial mock list matching the UI image
   void loadInitialExpenses() {
@@ -67,5 +77,64 @@ class ExpensesCubit extends Cubit<ExpensesState> {
         emit(ExpensesLoaded(expenses: updatedList));
       },
     );
+  }
+
+  Future<void> loadExpenses({
+    required String projectId,
+    required int workItemId,
+    required String fromDate,
+    required String toDate,
+  }) async {
+    emit(ExpensesLoading());
+
+    final result = await getExpensesUseCase(
+      projectId: projectId,
+      workItemId: workItemId,
+      fromDate: fromDate,
+      toDate: toDate,
+    );
+
+    result.fold(
+      (failure) => emit(ExpensesError(message: failure.errMessage)),
+      (expenses) => emit(ExpensesLoaded(expenses: expenses)),
+    );
+  }
+
+  Future<void> loadAllExpenses({
+    required String projectId,
+    required List<AssistantWorkItemEntity> workItems,
+    required String fromDate,
+    required String toDate,
+  }) async {
+    emit(ExpensesLoading());
+
+    final List<ExpenseEntity> allExpenses = [];
+    String? errMessage;
+
+    final futures = workItems.map((item) async {
+      final result = await getExpensesUseCase(
+        projectId: projectId,
+        workItemId: item.id,
+        fromDate: fromDate,
+        toDate: toDate,
+      );
+      result.fold(
+        (failure) {
+          errMessage = failure.errMessage;
+        },
+        (expenses) {
+          allExpenses.addAll(expenses);
+        },
+      );
+    });
+
+    await Future.wait(futures);
+
+    if (errMessage != null && allExpenses.isEmpty) {
+      emit(ExpensesError(message: errMessage!));
+    } else {
+      allExpenses.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      emit(ExpensesLoaded(expenses: allExpenses));
+    }
   }
 }

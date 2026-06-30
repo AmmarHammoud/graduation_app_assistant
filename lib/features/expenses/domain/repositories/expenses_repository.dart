@@ -9,4 +9,11 @@ abstract class ExpensesRepository {
     required double amount,
     required String description,
   });
+
+  Future<Either<Failure, List<ExpenseEntity>>> getExpenses({
+    required String projectId,
+    required int workItemId,
+    required String fromDate,
+    required String toDate,
+  });
 }

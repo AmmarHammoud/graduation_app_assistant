@@ -32,4 +32,27 @@ class ExpensesRepositoryImpl implements ExpensesRepository {
       return Left(ServerFailure(errMessage: e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, List<ExpenseEntity>>> getExpenses({
+    required String projectId,
+    required int workItemId,
+    required String fromDate,
+    required String toDate,
+  }) async {
+    try {
+      final models = await remoteDataSource.getExpenses(
+        projectId: projectId,
+        workItemId: workItemId,
+        fromDate: fromDate,
+        toDate: toDate,
+      );
+      return Right(models);
+    } catch (e) {
+      if (e is DioException) {
+        return Left(ServerFailure.fromDioError(e));
+      }
+      return Left(ServerFailure(errMessage: e.toString()));
+    }
+  }
 }

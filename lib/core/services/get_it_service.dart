@@ -31,6 +31,7 @@ import '../../features/expenses/data/datasources/expenses_remote_data_source.dar
 import '../../features/expenses/data/repositories/expenses_repository_impl.dart';
 import '../../features/expenses/domain/repositories/expenses_repository.dart';
 import '../../features/expenses/domain/usecases/add_expense_usecase.dart';
+import '../../features/expenses/domain/usecases/get_expenses_usecase.dart';
 import '../../features/expenses/presentation/cubits/expenses_cubit.dart';
 
 final getIt = GetIt.instance;
@@ -125,9 +126,11 @@ Future<void> setupSingltonGetIt() async {
 
   // 3. Domain Use Cases
   getIt.registerLazySingleton(() => AddExpenseUseCase(getIt.get<ExpensesRepository>()));
+  getIt.registerLazySingleton(() => GetExpensesUseCase(getIt.get<ExpensesRepository>()));
 
   // 4. Presentation Cubit Factory
   getIt.registerFactory(() => ExpensesCubit(
     addExpenseUseCase: getIt.get<AddExpenseUseCase>(),
+    getExpensesUseCase: getIt.get<GetExpensesUseCase>(),
   ));
 }

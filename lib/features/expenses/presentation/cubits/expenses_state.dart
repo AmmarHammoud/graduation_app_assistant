@@ -10,6 +10,8 @@ abstract class ExpensesState extends Equatable {
 
 class ExpensesInitial extends ExpensesState {}
 
+class ExpensesLoading extends ExpensesState {}
+
 class ExpensesLoaded extends ExpensesState {
   final List<ExpenseEntity> expenses;
 

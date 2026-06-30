@@ -7,6 +7,8 @@ import '../../../projects/domain/entities/assigned_proejct_details.dart';
 import '../cubits/expenses_cubit.dart';
 import '../cubits/expenses_state.dart';
 import '../../domain/entities/expense_entity.dart';
+import '../../../../core/services/get_it_service.dart';
+import 'all_expenses_page.dart';
 
 class ExpensesPage extends StatefulWidget {
   final String projectId;
@@ -30,6 +32,25 @@ class _ExpensesPageState extends State<ExpensesPage> {
   final TextEditingController _descriptionController = TextEditingController();
 
   AssistantWorkItemEntity? _selectedWorkItem;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.workItems.isNotEmpty) {
+      _selectedWorkItem = widget.workItems.first;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _fetchExpensesForSelectedWorkItem(_selectedWorkItem!);
+        }
+      });
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<ExpensesCubit>().loadEmptyExpenses();
+        }
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -126,6 +147,20 @@ class _ExpensesPageState extends State<ExpensesPage> {
             description: _descriptionController.text.trim(),
           );
     }
+  }
+
+  void _fetchExpensesForSelectedWorkItem(AssistantWorkItemEntity workItem) {
+    final now = DateTime.now();
+    final thirtyDaysAgo = now.subtract(const Duration(days: 30));
+    final fromDateStr = "${thirtyDaysAgo.year}-${thirtyDaysAgo.month.toString().padLeft(2, '0')}-${thirtyDaysAgo.day.toString().padLeft(2, '0')}";
+    final toDateStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+
+    context.read<ExpensesCubit>().loadExpenses(
+          projectId: widget.projectId,
+          workItemId: workItem.id,
+          fromDate: fromDateStr,
+          toDate: toDateStr,
+        );
   }
 
   @override
@@ -305,6 +340,9 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                   setState(() {
                                     _selectedWorkItem = value;
                                   });
+                                  if (value != null) {
+                                    _fetchExpensesForSelectedWorkItem(value);
+                                  }
                                 },
                                 validator: (value) => value == null ? 'يرجى اختيار بند العمل' : null,
                               ),
@@ -458,7 +496,21 @@ class _ExpensesPageState extends State<ExpensesPage> {
                             ),
                           ),
                           TextButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => BlocProvider(
+                                    create: (context) => getIt<ExpensesCubit>(),
+                                    child: AllExpensesPage(
+                                      projectId: widget.projectId,
+                                      projectName: widget.projectName,
+                                      workItems: widget.workItems,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                             child: const Text(
                               'عرض الكل 〉',
                               style: TextStyle(
@@ -474,7 +526,21 @@ class _ExpensesPageState extends State<ExpensesPage> {
                       const SizedBox(height: 12),
 
                       // Listing expenses
-                      if (expensesList.isEmpty)
+                      if (state is ExpensesLoading)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 40.0),
+                            child: SizedBox(
+                              width: 40,
+                              height: 40,
+                              child: LoadingIndicator(
+                                indicatorType: Indicator.lineScaleParty,
+                                colors: [Color(0xFF0F172A)],
+                              ),
+                            ),
+                          ),
+                        )
+                      else if (expensesList.isEmpty)
                         const Center(
                           child: Padding(
                             padding: EdgeInsets.symmetric(vertical: 40.0),
