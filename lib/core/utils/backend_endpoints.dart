@@ -1,5 +1,5 @@
 class BackendEndPoint {
-  static const String baseUrl = 'http://192.168.83.6:8000/api/';
+  static const String baseUrl = 'http://192.168.83.7:8000/api/';
   static const String signIn = '/auth/internal/login';
   static const String signUp = 'auth/register';
   static const String verifyEmail = 'auth/verify-email';

@@ -3,6 +3,8 @@ import '../../../../core/services/database_service.dart';
 import '../../../../core/utils/backend_endpoints.dart';
 import '../models/work_item_update_details.dart';
 import '../models/assigned_project_model.dart';
+import '../models/project_space_model.dart';
+import '../models/space_responses.dart';
 
 abstract class AssignedProjectsDataSource {
   Future<List<AssignedProjectModel>> fetchAssignedProjects({String? filter});
@@ -14,6 +16,10 @@ abstract class AssignedProjectsDataSource {
     required String spaceName,
     required List<String> localImagePaths,
   });
+  Future<List<ProjectSpaceModel>> fetchProjectSpaces(String projectId);
+  Future<GypsumSpacesResponse> fetchGypsumSpaces(String projectId);
+  Future<SanitarySpacesResponse> fetchSanitarySpaces(String projectId);
+  Future<CeramicSpacesResponse> fetchCeramicSpaces(String projectId);
 }
 
 class AssignedProjectsRemoteDataSource implements AssignedProjectsDataSource {
@@ -89,5 +95,38 @@ class AssignedProjectsRemoteDataSource implements AssignedProjectsDataSource {
     // Simulated multi-part upload form submission cycle
     await Future.delayed(const Duration(milliseconds: 1200));
     return true;
+  }
+
+  @override
+  Future<List<ProjectSpaceModel>> fetchProjectSpaces(String projectId) async {
+    final response = await _databaseService.getData(
+      endpoint: '${BackendEndPoint.projects}/$projectId/spaces',
+    );
+    final List<dynamic> spacesList = response['data'] as List<dynamic>? ?? [];
+    return spacesList.map((json) => ProjectSpaceModel.fromJson(json as Map<String, dynamic>)).toList();
+  }
+
+  @override
+  Future<GypsumSpacesResponse> fetchGypsumSpaces(String projectId) async {
+    final response = await _databaseService.getData(
+      endpoint: '${BackendEndPoint.projects}/$projectId/spaces/gypsum',
+    );
+    return GypsumSpacesResponse.fromJson(response as Map<String, dynamic>);
+  }
+
+  @override
+  Future<SanitarySpacesResponse> fetchSanitarySpaces(String projectId) async {
+    final response = await _databaseService.getData(
+      endpoint: '${BackendEndPoint.projects}/$projectId/spaces/sanitary',
+    );
+    return SanitarySpacesResponse.fromJson(response as Map<String, dynamic>);
+  }
+
+  @override
+  Future<CeramicSpacesResponse> fetchCeramicSpaces(String projectId) async {
+    final response = await _databaseService.getData(
+      endpoint: '${BackendEndPoint.projects}/$projectId/spaces/ceramic',
+    );
+    return CeramicSpacesResponse.fromJson(response as Map<String, dynamic>);
   }
 }

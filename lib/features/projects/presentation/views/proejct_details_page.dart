@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:graduation_app_assistant/features/project_images/presentation/cubits/project_images_cubit.dart';
+import 'package:graduation_app_assistant/features/project_images/presentation/views/project_images_page.dart';
 import 'package:graduation_app_assistant/features/projects/presentation/views/project_details_widgets/progress_header_card.dart';
 import 'package:graduation_app_assistant/features/projects/presentation/views/project_details_widgets/supervisor_card.dart';
 import 'package:graduation_app_assistant/features/projects/presentation/views/project_details_widgets/work_item_task_list.dart';
 
+import '../../../../core/services/get_it_service.dart';
 import '../../domain/entities/assigned_proejct_details.dart';
 import '../cubit/assigned_project_details_cubit.dart';
 import '../cubit/assigned_project_details_state.dart';
@@ -42,6 +45,18 @@ class AssistantProjectDetailsPage extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 children: [
                   ProgressHeaderCard(details: details),
+                  const SizedBox(height: 12),
+                  ElevatedButton(onPressed: (){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BlocProvider(
+                          create: (context) => getIt<ProjectImagesCubit>()..loadImages(details.id),
+                          child: ProjectImagesPage(projectId: details.id, projectName: details.title),
+                        ),
+                      ),
+                    );
+                  }, child: Text('ADD IMAGES')),
                   const SizedBox(height: 12),
                   SupervisorCard(details: details),
                   const SizedBox(height: 24),

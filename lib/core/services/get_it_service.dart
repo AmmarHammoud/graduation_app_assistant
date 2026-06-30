@@ -19,6 +19,13 @@ import '../../features/projects/presentation/cubit/assigned_project_cubit.dart';
 import '../../features/projects/presentation/cubit/assigned_project_details_cubit.dart';
 import '../../features/projects/presentation/cubit/item_update_cubit.dart'; // 🆕 Added
 
+// Project Images Feature Imports
+import '../../features/project_images/data/datasources/project_images_remote_data_source.dart';
+import '../../features/project_images/data/repositories/project_images_repository_impl.dart';
+import '../../features/project_images/domain/repositories/project_images_repository.dart';
+import '../../features/project_images/domain/usecases/project_images_usecases.dart';
+import '../../features/project_images/presentation/cubits/project_images_cubit.dart';
+
 final getIt = GetIt.instance;
 
 Future<void> setupSingltonGetIt() async {
@@ -67,5 +74,31 @@ Future<void> setupSingltonGetIt() async {
   // 🆕 Added Item Update Cubit
   getIt.registerFactory(() => ItemUpdateCubit(
     getWorkItemUpdateDetails: getIt.get<GetWorkItemUpdateDetails>(),
+  ));
+
+  // ==========================================
+  // Project Images Feature (🆕 Added)
+  // ==========================================
+
+  // 1. Data Source
+  getIt.registerLazySingleton<ProjectImagesRemoteDataSource>(
+    () => ProjectImagesRemoteDataSourceImpl(getIt.get<DatabaseService>()),
+  );
+
+  // 2. Repository
+  getIt.registerLazySingleton<ProjectImagesRepository>(
+    () => ProjectImagesRepositoryImpl(remoteDataSource: getIt.get<ProjectImagesRemoteDataSource>()),
+  );
+
+  // 3. Domain Use Cases
+  getIt.registerLazySingleton(() => GetProjectImagesUseCase(getIt.get<ProjectImagesRepository>()));
+  getIt.registerLazySingleton(() => UploadProjectImageUseCase(getIt.get<ProjectImagesRepository>()));
+  getIt.registerLazySingleton(() => DeleteProjectImageUseCase(getIt.get<ProjectImagesRepository>()));
+
+  // 4. Presentation Cubit Factory
+  getIt.registerFactory(() => ProjectImagesCubit(
+    getProjectImagesUseCase: getIt.get<GetProjectImagesUseCase>(),
+    uploadProjectImageUseCase: getIt.get<UploadProjectImageUseCase>(),
+    deleteProjectImageUseCase: getIt.get<DeleteProjectImageUseCase>(),
   ));
 }
