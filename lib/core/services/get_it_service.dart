@@ -26,6 +26,13 @@ import '../../features/project_images/domain/repositories/project_images_reposit
 import '../../features/project_images/domain/usecases/project_images_usecases.dart';
 import '../../features/project_images/presentation/cubits/project_images_cubit.dart';
 
+// Expenses Feature Imports
+import '../../features/expenses/data/datasources/expenses_remote_data_source.dart';
+import '../../features/expenses/data/repositories/expenses_repository_impl.dart';
+import '../../features/expenses/domain/repositories/expenses_repository.dart';
+import '../../features/expenses/domain/usecases/add_expense_usecase.dart';
+import '../../features/expenses/presentation/cubits/expenses_cubit.dart';
+
 final getIt = GetIt.instance;
 
 Future<void> setupSingltonGetIt() async {
@@ -100,5 +107,27 @@ Future<void> setupSingltonGetIt() async {
     getProjectImagesUseCase: getIt.get<GetProjectImagesUseCase>(),
     uploadProjectImageUseCase: getIt.get<UploadProjectImageUseCase>(),
     deleteProjectImageUseCase: getIt.get<DeleteProjectImageUseCase>(),
+  ));
+
+  // ==========================================
+  // Expenses Feature (🆕 Added)
+  // ==========================================
+
+  // 1. Data Source
+  getIt.registerLazySingleton<ExpensesRemoteDataSource>(
+    () => ExpensesRemoteDataSourceImpl(getIt.get<DatabaseService>()),
+  );
+
+  // 2. Repository
+  getIt.registerLazySingleton<ExpensesRepository>(
+    () => ExpensesRepositoryImpl(remoteDataSource: getIt.get<ExpensesRemoteDataSource>()),
+  );
+
+  // 3. Domain Use Cases
+  getIt.registerLazySingleton(() => AddExpenseUseCase(getIt.get<ExpensesRepository>()));
+
+  // 4. Presentation Cubit Factory
+  getIt.registerFactory(() => ExpensesCubit(
+    addExpenseUseCase: getIt.get<AddExpenseUseCase>(),
   ));
 }

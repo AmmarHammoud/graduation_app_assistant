@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graduation_app_assistant/features/project_images/presentation/cubits/project_images_cubit.dart';
 import 'package:graduation_app_assistant/features/project_images/presentation/views/project_images_page.dart';
+import 'package:graduation_app_assistant/features/expenses/presentation/cubits/expenses_cubit.dart';
+import 'package:graduation_app_assistant/features/expenses/presentation/views/expenses_page.dart';
 import 'package:graduation_app_assistant/features/projects/presentation/views/project_details_widgets/progress_header_card.dart';
 import 'package:graduation_app_assistant/features/projects/presentation/views/project_details_widgets/supervisor_card.dart';
 import 'package:graduation_app_assistant/features/projects/presentation/views/project_details_widgets/work_item_task_list.dart';
 
 import '../../../../core/services/get_it_service.dart';
-import '../../domain/entities/assigned_proejct_details.dart';
 import '../cubit/assigned_project_details_cubit.dart';
 import '../cubit/assigned_project_details_state.dart';
 
@@ -46,18 +47,63 @@ class AssistantProjectDetailsPage extends StatelessWidget {
                 children: [
                   ProgressHeaderCard(details: details),
                   const SizedBox(height: 12),
-                  ElevatedButton(onPressed: (){
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => BlocProvider(
-                          create: (context) => getIt<ProjectImagesCubit>()..loadImages(details.id),
-                          child: ProjectImagesPage(projectId: details.id, projectName: details.title),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => BlocProvider(
+                                  create: (context) => getIt<ProjectImagesCubit>()..loadImages(details.id),
+                                  child: ProjectImagesPage(projectId: details.id, projectName: details.title),
+                                ),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.image_outlined, size: 18, color: Colors.white),
+                          label: const Text('صور الوحدة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Tajawal')),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0F172A),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            elevation: 0,
+                          ),
                         ),
                       ),
-                    );
-                  }, child: Text('ADD IMAGES')),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => BlocProvider(
+                                  create: (context) => getIt<ExpensesCubit>()..loadInitialExpenses(),
+                                  child: ExpensesPage(
+                                    projectId: details.id,
+                                    projectName: details.title,
+                                    workItems: details.workItems,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.wallet_outlined, size: 18, color: Colors.white),
+                          label: const Text('مصاريف الورشة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Tajawal')),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF006D5B),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            elevation: 0,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 12),
+
                   SupervisorCard(details: details),
                   const SizedBox(height: 24),
                   Padding(
