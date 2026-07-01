@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -121,6 +123,14 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
             const SizedBox(width: 8),
           ],
         ),
+        bottomNavigationBar: BlocBuilder<ItemUpdateCubit, ItemUpdateState>(
+          builder: (context, state) {
+            if (state is ItemUpdateLoaded && state.numericValues.isNotEmpty) {
+              return _buildFixedBottomSaveButton(context, state);
+            }
+            return const SizedBox.shrink();
+          },
+        ),
         body: BlocConsumer<ItemUpdateCubit, ItemUpdateState>(
           listener: (context, state) {
             if (state is ItemUpdateSuccess) {
@@ -155,13 +165,20 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
                   _buildHeaderCircularMetricsCard(state.data),
                   const SizedBox(height: 16),
                   _buildReviewNoticeAlert(),
+                  if (state.data.hasPendingProgressRequest) ...[
+                    const SizedBox(height: 16),
+                    _buildPendingNumericRequestNotice(),
+                  ],
                   const SizedBox(height: 24),
                   const Text(
                     'تفاصيل الإنجاز',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0F172A)),
                   ),
                   const SizedBox(height: 12),
-                  ...state.data.subSpaces.map((space) => _buildSubSpaceRowCard(context, space, state)),
+                  if (state.numericValues.isNotEmpty)
+                    ..._buildNumericCardsList(context, state)
+                  else
+                    ...state.data.subSpaces.map((space) => _buildSubSpaceRowCard(context, space, state)),
                   const SizedBox(height: 24),
                   Text(
                     'تعليقات البند (Item Comments)',
@@ -386,7 +403,7 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
                     value: data.currentPercent,
                     strokeWidth: 8,
                     backgroundColor: const Color(0xFFF1F5F9),
-                    color: const Color(0xFFF59E0B),
+                    color: const Color(0xFF00B480),
                   ),
                 ),
                 Column(
@@ -397,7 +414,7 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Color(0xFF0F172A), height: 1.1),
                     ),
                     const Text(
-                      'إنجاز',
+                      'مكتمل',
                       style: TextStyle(color: Colors.grey, fontSize: 11, height: 1.1),
                     ),
                   ],
@@ -485,7 +502,11 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      isCompleted ? 'تم الإنجاز والتوثيق' : 'قيد المراجعة',
+                      isCompleted
+                          ? 'تم الإنجاز والتوثيق'
+                          : (space.statusLabel == 'قيد المراجعة'
+                              ? 'قيد المراجعة'
+                              : 'لم يتم الرفع'),
                       style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
                     ),
                   ],
@@ -883,5 +904,447 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
     } catch (e) {
       return dateStr;
     }
+  }
+
+  Future<void> _pickNumericImage(BuildContext context, String fieldKey) async {
+    final ImagePicker picker = ImagePicker();
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext sheetContext) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: SafeArea(
+            child: Wrap(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.camera_alt_outlined, color: Color(0xFF006D5B)),
+                  title: const Text('التقاط صورة بالكاميرا', style: TextStyle(fontWeight: FontWeight.w600, fontFamily: 'Tajawal')),
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    final XFile? photo = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+                    if (photo != null && context.mounted) {
+                      context.read<ItemUpdateCubit>().selectNumericImages(fieldKey, [photo.path]);
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_library_outlined, color: Color(0xFF006D5B)),
+                  title: const Text('اختيار من معرض الصور', style: TextStyle(fontWeight: FontWeight.w600, fontFamily: 'Tajawal')),
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+                    if (image != null && context.mounted) {
+                      context.read<ItemUpdateCubit>().selectNumericImages(fieldKey, [image.path]);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  List<NumericFieldConfig> _getNumericFieldsConfig(String itemName) {
+    final name = itemName.toLowerCase();
+    if (name.contains('ملابن')) {
+      return [
+        NumericFieldConfig(key: 'completed_wood_doors', title: 'أبواب خشب', initialValue: 4, totalValue: 5),
+        NumericFieldConfig(key: 'completed_aluminum_doors', title: 'أبواب ألمنيوم', initialValue: 2, totalValue: 3),
+        NumericFieldConfig(key: 'completed_windows', title: 'شبابيك', initialValue: 6, totalValue: 8),
+      ];
+    } else if (name.contains('ألمنيوم') || name.contains('المنيوم')) {
+      return [
+        NumericFieldConfig(key: 'completed_aluminum', title: 'ألمنيوم وأبجورات', initialValue: 5, totalValue: 12),
+      ];
+    } else if (name.contains('أبواب') || name.contains('ابواب') || name.contains('نجارة')) {
+      return [
+        NumericFieldConfig(key: 'completed_doors', title: 'أبواب خشب', initialValue: 2, totalValue: 5),
+        NumericFieldConfig(key: 'kitchen_cabinet_done', title: 'أغطية أبجور', initialValue: 0, totalValue: 6),
+      ];
+    }
+    return [];
+  }
+
+  List<Widget> _buildNumericCardsList(BuildContext context, ItemUpdateLoaded state) {
+    final configs = _getNumericFieldsConfig(state.data.itemName);
+    return configs.map((config) => _buildNumericFieldCard(context, config, state)).toList();
+  }
+
+  Widget _buildNumericFieldCard(BuildContext context, NumericFieldConfig config, ItemUpdateLoaded state) {
+    final currentValue = state.numericValues[config.key] ?? config.initialValue;
+    final images = state.chosenImagesByField[config.key] ?? [];
+    final hasImage = images.isNotEmpty;
+
+    final isPendingRequest = state.data.hasPendingProgressRequest;
+    final canDecrement = currentValue > 0 && !isPendingRequest;
+    final canIncrement = currentValue < config.totalValue && !isPendingRequest;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                config.title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: Color(0xFF0F172A),
+                  fontFamily: 'Tajawal',
+                ),
+              ),
+              RichText(
+                text: TextSpan(
+                  style: const TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontSize: 13,
+                    color: Color(0xFF64748B),
+                  ),
+                  children: [
+                    const TextSpan(text: 'الحالي: '),
+                    TextSpan(
+                      text: '$currentValue',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    const TextSpan(text: ' من '),
+                    TextSpan(
+                      text: '${config.totalValue}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'صورة التوثيق',
+                style: TextStyle(
+                  fontFamily: 'Tajawal',
+                  color: Color(0xFF94A3B8),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                'العدد الجديد',
+                style: TextStyle(
+                  fontFamily: 'Tajawal',
+                  color: Color(0xFF94A3B8),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (!hasImage)
+                GestureDetector(
+                  onTap: isPendingRequest ? null : () => _pickNumericImage(context, config.key),
+                  child: CustomPaint(
+                    painter: DashedRectPainter(
+                      color: isPendingRequest ? const Color(0xFFE2E8F0) : const Color(0xFFCBD5E1),
+                      strokeWidth: 1.2,
+                      borderRadius: 12,
+                    ),
+                    child: Container(
+                      width: 140,
+                      height: 44,
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add_photo_alternate_outlined, color: isPendingRequest ? const Color(0xFFCBD5E1) : const Color(0xFF94A3B8), size: 18),
+                          const SizedBox(width: 6),
+                          Text(
+                            'أضف صورة',
+                            style: TextStyle(
+                              fontFamily: 'Tajawal',
+                              color: isPendingRequest ? const Color(0xFFCBD5E1) : const Color(0xFF94A3B8),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              else
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        File(images.last),
+                        width: 140,
+                        height: 44,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    if (!isPendingRequest)
+                      Positioned(
+                        top: -6,
+                        right: -6,
+                        child: GestureDetector(
+                          onTap: () => context.read<ItemUpdateCubit>().clearNumericImage(config.key),
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              Container(
+                height: 44,
+                width: 130,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFF1F5F9)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    GestureDetector(
+                      onTap: canIncrement
+                          ? () => context.read<ItemUpdateCubit>().updateNumericValue(config.key, currentValue + 1)
+                          : null,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        child: Icon(
+                          Icons.add,
+                          color: canIncrement ? const Color(0xFF0F172A) : const Color(0xFFCBD5E1),
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '$currentValue',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: canDecrement
+                          ? () => context.read<ItemUpdateCubit>().updateNumericValue(config.key, currentValue - 1)
+                          : null,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        child: Icon(
+                          Icons.remove,
+                          color: canDecrement ? const Color(0xFF0F172A) : const Color(0xFFCBD5E1),
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPendingNumericRequestNotice() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7ED), // soft orange
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFFEDD5)),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, color: Color(0xFFF97316), size: 22),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'هناك طلب تحديث قيد المراجعة حالياً لهذا البند. لا يمكنك تقديم طلب جديد حتى يتم اعتماد أو رفض الطلب الحالي.',
+              style: TextStyle(
+                color: Color(0xFFC2410C),
+                fontSize: 12,
+                height: 1.5,
+                fontWeight: FontWeight.w500,
+                fontFamily: 'Tajawal',
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFixedBottomSaveButton(BuildContext context, ItemUpdateLoaded state) {
+    final hasImages = state.chosenImagesByField.values.any((images) => images.isNotEmpty);
+    final isSubmitting = state.isSubmittingNumeric;
+    final isPending = state.data.hasPendingProgressRequest;
+    final isEnabled = hasImages && !isSubmitting && !isPending;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: ElevatedButton(
+            onPressed: isEnabled
+                ? () {
+                    context.read<ItemUpdateCubit>().sendNumericRequestToAdmin();
+                  }
+                : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isEnabled ? const Color(0xFF006D5B) : const Color(0xFF94A3B8),
+              disabledBackgroundColor: const Color(0xFFCBD5E1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+            ),
+            child: isSubmitting
+                ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Text(
+                    isPending ? 'طلب قيد المراجعة' : 'حفظ التحديث',
+                    style: const TextStyle(
+                      fontFamily: 'Tajawal',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class NumericFieldConfig {
+  final String key;
+  final String title;
+  final int initialValue;
+  final int totalValue;
+
+  NumericFieldConfig({
+    required this.key,
+    required this.title,
+    required this.initialValue,
+    required this.totalValue,
+  });
+}
+
+class DashedRectPainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+  final double gap;
+  final double dashLength;
+  final double borderRadius;
+
+  DashedRectPainter({
+    this.color = const Color(0xFFCBD5E1),
+    this.strokeWidth = 1.0,
+    this.gap = 4.0,
+    this.dashLength = 4.0,
+    this.borderRadius = 12.0,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    final path = Path();
+    path.addRRect(RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Radius.circular(borderRadius),
+    ));
+
+    final dashPath = Path();
+    double distance = 0.0;
+    for (final PathMetric measurePath in path.computeMetrics()) {
+      while (distance < measurePath.length) {
+        dashPath.addPath(
+          measurePath.extractPath(distance, distance + dashLength),
+          Offset.zero,
+        );
+        distance += dashLength + gap;
+      }
+    }
+    canvas.drawPath(dashPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant DashedRectPainter oldDelegate) {
+    return oldDelegate.color != color ||
+        oldDelegate.strokeWidth != strokeWidth ||
+        oldDelegate.gap != gap ||
+        oldDelegate.dashLength != dashLength ||
+        oldDelegate.borderRadius != borderRadius;
   }
 }

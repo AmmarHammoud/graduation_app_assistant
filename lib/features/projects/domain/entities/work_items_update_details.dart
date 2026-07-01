@@ -7,6 +7,7 @@ class WorkItemUpdateDetails extends Equatable {
   final String? delayWarningMessage;
   final List<SubSpaceItemEntity> subSpaces;
   final List<UpdateCommentEntity> managerComments;
+  final bool hasPendingProgressRequest;
 
   const WorkItemUpdateDetails({
     required this.itemId,
@@ -15,10 +16,19 @@ class WorkItemUpdateDetails extends Equatable {
     this.delayWarningMessage,
     required this.subSpaces,
     required this.managerComments,
+    this.hasPendingProgressRequest = false,
   });
 
   @override
-  List<Object?> get props => [itemId, itemName, currentPercent, delayWarningMessage, subSpaces, managerComments];
+  List<Object?> get props => [
+        itemId,
+        itemName,
+        currentPercent,
+        delayWarningMessage,
+        subSpaces,
+        managerComments,
+        hasPendingProgressRequest,
+      ];
 }
 
 class SubSpaceItemEntity extends Equatable {

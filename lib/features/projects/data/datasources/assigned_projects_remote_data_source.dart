@@ -22,6 +22,12 @@ abstract class AssignedProjectsDataSource {
     required int spaceId,
     required List<String> localImagePaths,
   });
+  Future<bool> submitNumericProgressUpdate({
+    required String projectId,
+    required String itemId,
+    required Map<String, String> payload,
+    required List<String> localImagePaths,
+  });
   Future<List<ProjectSpaceModel>> fetchProjectSpaces(String projectId);
   Future<GypsumSpacesResponse> fetchGypsumSpaces(String projectId);
   Future<SanitarySpacesResponse> fetchSanitarySpaces(String projectId);
@@ -101,6 +107,51 @@ class AssignedProjectsRemoteDataSource implements AssignedProjectsDataSource {
 
     final response = await _databaseService.addData(
       endpoint: '${BackendEndPoint.projects}/$projectId/work-items/$itemId/progress-requests/room/$spaceId',
+      data: formData,
+    );
+
+    if (response is Map<String, dynamic>) {
+      final status = response['status'] as int?;
+      return status == 201;
+    }
+    return false;
+  }
+
+  @override
+  Future<bool> submitNumericProgressUpdate({
+    required String projectId,
+    required String itemId,
+    required Map<String, String> payload,
+    required List<String> localImagePaths,
+  }) async {
+    if (localImagePaths.isEmpty) {
+      throw DioException(
+        requestOptions: RequestOptions(path: ''),
+        response: Response(
+          requestOptions: RequestOptions(path: ''),
+          statusCode: 422,
+          data: {'message': 'يرجى اختيار صورة واحدة على الأقل لتوثيق الإنجاز.'},
+        ),
+      );
+    }
+
+    final Map<String, dynamic> dataMap = Map<String, dynamic>.from(payload);
+
+    if (localImagePaths.isNotEmpty) {
+      final List<MultipartFile> files = [];
+      for (final path in localImagePaths) {
+        if (path.isNotEmpty) {
+          final fileName = path.split('/').last;
+          files.add(await MultipartFile.fromFile(path, filename: fileName));
+        }
+      }
+      dataMap['photos[]'] = files;
+    }
+
+    final formData = FormData.fromMap(dataMap);
+
+    final response = await _databaseService.addData(
+      endpoint: '${BackendEndPoint.projects}/$projectId/work-items/$itemId/progress-requests',
       data: formData,
     );
 

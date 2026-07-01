@@ -30,6 +30,7 @@ class WorkItemUpdateDetailsModel extends WorkItemUpdateDetails {
     super.delayWarningMessage,
     required super.subSpaces,
     required super.managerComments,
+    super.hasPendingProgressRequest = false,
   });
 
   factory WorkItemUpdateDetailsModel.fromResponse({
@@ -40,6 +41,25 @@ class WorkItemUpdateDetailsModel extends WorkItemUpdateDetails {
     final data = json['data'] as Map<String, dynamic>? ?? {};
     final List<dynamic> finishedList = data['finished'] as List<dynamic>? ?? [];
     final List<dynamic> unfinishedList = data['unfinished'] as List<dynamic>? ?? [];
+
+    final pendingRequest = data['pending_request'] as Map<String, dynamic>?;
+    bool hasPendingProgress = false;
+    int? pendingSpaceId;
+
+    if (pendingRequest != null) {
+      final type = pendingRequest['type'] as String?;
+      final status = pendingRequest['status'] as String?;
+      if (status == 'pending') {
+        if (type == 'progress') {
+          hasPendingProgress = true;
+        } else if (type == 'room') {
+          final payload = pendingRequest['payload'] as Map<String, dynamic>?;
+          if (payload != null) {
+            pendingSpaceId = int.tryParse(payload['space_id']?.toString() ?? '');
+          }
+        }
+      }
+    }
 
     final List<SubSpaceItemEntity> spaces = [];
 
@@ -58,10 +78,12 @@ class WorkItemUpdateDetailsModel extends WorkItemUpdateDetails {
 
     // Map unfinished
     for (final s in unfinishedList) {
+      final sId = s['id'] as int? ?? 0;
+      final isPending = sId == pendingSpaceId;
       spaces.add(SubSpaceItemEntity(
-        id: s['id'] as int? ?? 0,
+        id: sId,
         spaceName: _mapSpaceTypeToArabic(s['type'] as String? ?? ''),
-        statusLabel: 'لم يتم الرفع',
+        statusLabel: isPending ? 'قيد المراجعة' : 'لم يتم الرفع',
         uploadedMediaUrl: null,
         uploadDate: null,
       ));
@@ -77,6 +99,7 @@ class WorkItemUpdateDetailsModel extends WorkItemUpdateDetails {
       delayWarningMessage: null,
       subSpaces: spaces,
       managerComments: const [],
+      hasPendingProgressRequest: hasPendingProgress,
     );
   }
 
