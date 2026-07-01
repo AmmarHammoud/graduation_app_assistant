@@ -666,25 +666,47 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
 
             (() {
               final isThisSpaceSubmitting = state.submittingSpaceIds.contains(space.id);
+              final spaceImages = state.chosenImagesBySpace[space.id] ?? [];
+              final hasImage = spaceImages.isNotEmpty;
+
               return SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: isThisSpaceSubmitting ? null : () => context.read<ItemUpdateCubit>().sendRequestToAdmin(space),
+                  onPressed: (isThisSpaceSubmitting || !hasImage)
+                      ? null
+                      : () => context.read<ItemUpdateCubit>().sendRequestToAdmin(space),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF64748B), // Slate grey button as per screenshot
+                    backgroundColor: hasImage ? const Color(0xFF006D5B) : const Color(0xFF94A3B8),
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: const Color(0xFFCBD5E1),
+                    disabledForegroundColor: const Color(0xFF94A3B8),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     elevation: 0,
                   ),
                   child: isThisSpaceSubmitting
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Row(
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.send_rounded, size: 16),
-                            SizedBox(width: 8),
-                            Text('إرسال للمراجعة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                            Icon(
+                              Icons.send_rounded,
+                              size: 16,
+                              color: hasImage ? Colors.white : const Color(0xFF94A3B8),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'إرسال للمراجعة',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: hasImage ? Colors.white : const Color(0xFF94A3B8),
+                              ),
+                            ),
                           ],
                         ),
                 ),
