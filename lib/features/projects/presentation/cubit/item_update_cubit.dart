@@ -1,5 +1,7 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/errors/failures.dart';
 import '../../domain/entities/work_items_update_details.dart';
 import '../../domain/usecases/get_work_item_update_details.dart';
 import 'item_update_state.dart';
@@ -45,6 +47,17 @@ class ItemUpdateCubit extends Cubit<ItemUpdateState> {
     if (state is! ItemUpdateLoaded) return;
     final curr = state as ItemUpdateLoaded;
 
+    final spaceImages = curr.chosenImagesBySpace[space.id] ?? [];
+    if (spaceImages.isEmpty) {
+      emit(ItemUpdateSubmissionFailure(
+        data: curr.data,
+        chosenImagesBySpace: curr.chosenImagesBySpace,
+        submittingSpaceIds: curr.submittingSpaceIds,
+        errorMessage: 'يرجى اختيار صورة أولاً لتوثيق الإنجاز.',
+      ));
+      return;
+    }
+
     emit(curr.copyWith(
       submittingSpaceIds: Set<int>.from(curr.submittingSpaceIds)..add(space.id),
     ));
@@ -66,11 +79,25 @@ class ItemUpdateCubit extends Cubit<ItemUpdateState> {
           ));
         }
       }
-    } catch (_) {
+    } on DioException catch (e) {
       if (state is ItemUpdateLoaded) {
         final updatedCurr = state as ItemUpdateLoaded;
-        emit(updatedCurr.copyWith(
+        final failure = ServerFailure.fromDioError(e);
+        emit(ItemUpdateSubmissionFailure(
+          data: updatedCurr.data,
+          chosenImagesBySpace: updatedCurr.chosenImagesBySpace,
           submittingSpaceIds: Set<int>.from(updatedCurr.submittingSpaceIds)..remove(space.id),
+          errorMessage: failure.errMessage,
+        ));
+      }
+    } catch (e) {
+      if (state is ItemUpdateLoaded) {
+        final updatedCurr = state as ItemUpdateLoaded;
+        emit(ItemUpdateSubmissionFailure(
+          data: updatedCurr.data,
+          chosenImagesBySpace: updatedCurr.chosenImagesBySpace,
+          submittingSpaceIds: Set<int>.from(updatedCurr.submittingSpaceIds)..remove(space.id),
+          errorMessage: e.toString(),
         ));
       }
     }

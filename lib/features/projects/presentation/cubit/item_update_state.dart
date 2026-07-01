@@ -41,3 +41,17 @@ class ItemUpdateError extends ItemUpdateState {
   final String message;
   const ItemUpdateError(this.message);
 }
+
+class ItemUpdateSubmissionFailure extends ItemUpdateLoaded {
+  final String errorMessage;
+
+  const ItemUpdateSubmissionFailure({
+    required super.data,
+    required super.chosenImagesBySpace,
+    required super.submittingSpaceIds,
+    required this.errorMessage,
+  });
+
+  @override
+  List<Object?> get props => [data, chosenImagesBySpace, submittingSpaceIds, errorMessage];
+}

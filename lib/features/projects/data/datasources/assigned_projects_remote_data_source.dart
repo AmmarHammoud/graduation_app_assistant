@@ -71,6 +71,17 @@ class AssignedProjectsRemoteDataSource implements AssignedProjectsDataSource {
     required int spaceId,
     required List<String> localImagePaths,
   }) async {
+    if (localImagePaths.isEmpty) {
+      throw DioException(
+        requestOptions: RequestOptions(path: ''),
+        response: Response(
+          requestOptions: RequestOptions(path: ''),
+          statusCode: 422,
+          data: {'message': 'يرجى اختيار صورة واحدة على الأقل لتوثيق الإنجاز.'},
+        ),
+      );
+    }
+
     final Map<String, dynamic> dataMap = {
       'completed': 1,
     };

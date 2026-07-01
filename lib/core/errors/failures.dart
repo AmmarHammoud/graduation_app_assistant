@@ -71,8 +71,10 @@ class ServerFailure extends Failure {
             "حدث خطأ في التحقق من البيانات، يرجى المحاولة مرة أخرى.",
       );
     } else if (statusCode == 500) {
-      return const ServerFailure(
-        errMessage: "حدث خطأ في الخادم، يرجى المحاولة لاحقًا.",
+      return ServerFailure(
+        errMessage:
+            response?.data['message'] ??
+            "حدث خطأ في الخادم، يرجى المحاولة لاحقًا.",
       );
     } else {
       return const ServerFailure(

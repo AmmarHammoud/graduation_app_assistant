@@ -130,6 +130,16 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
               // Instead of popping right away, reload details to simulate submission cycle, or let pop happen.
               // For better demonstration, we pop to complete the flow.
               Navigator.pop(context);
+            } else if (state is ItemUpdateSubmissionFailure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    state.errorMessage,
+                    style: const TextStyle(fontFamily: 'Tajawal'),
+                  ),
+                  backgroundColor: Colors.redAccent,
+                ),
+              );
             }
           },
           builder: (context, state) {
