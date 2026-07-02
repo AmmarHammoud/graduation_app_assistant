@@ -10,6 +10,9 @@ import '../../../comments/presentation/cubits/comment_state.dart';
 import '../../domain/entities/work_items_update_details.dart';
 import '../cubit/item_update_cubit.dart';
 import '../cubit/item_update_state.dart';
+import '../../../../core/services/get_it_service.dart';
+import '../cubit/duration_extension_cubit.dart';
+import 'duration_extension_page.dart';
 
 class UpdateProjectProgressPage extends StatefulWidget {
   final int workItemId;
@@ -298,7 +301,26 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
                 const SizedBox(height: 12),
                 Center(
                   child: ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      final itemState = context.read<ItemUpdateCubit>().state;
+                      String itemName = 'تمديد العمل';
+                      if (itemState is ItemUpdateLoaded) {
+                        itemName = itemState.data.itemName;
+                      }
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BlocProvider(
+                            create: (context) => getIt<DurationExtensionCubit>(),
+                            child: DurationExtensionPage(
+                              projectId: context.read<ItemUpdateCubit>().projectId ?? '',
+                              workItemId: widget.workItemId.toString(),
+                              itemName: itemName,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0F172A),
                       foregroundColor: Colors.white,

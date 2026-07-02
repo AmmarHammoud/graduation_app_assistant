@@ -6,6 +6,7 @@ import '../models/work_item_update_details.dart';
 import '../models/assigned_project_model.dart';
 import '../models/project_space_model.dart';
 import '../models/space_responses.dart';
+import '../models/duration_extension_model.dart';
 
 abstract class AssignedProjectsDataSource {
   Future<List<AssignedProjectModel>> fetchAssignedProjects({String? filter});
@@ -32,6 +33,12 @@ abstract class AssignedProjectsDataSource {
   Future<GypsumSpacesResponse> fetchGypsumSpaces(String projectId);
   Future<SanitarySpacesResponse> fetchSanitarySpaces(String projectId);
   Future<CeramicSpacesResponse> fetchCeramicSpaces(String projectId);
+  Future<DurationExtensionModel> submitDurationExtension({
+    required String projectId,
+    required String workItemId,
+    required int requestedDurationDays,
+    required String reason,
+  });
 }
 
 class AssignedProjectsRemoteDataSource implements AssignedProjectsDataSource {
@@ -193,5 +200,22 @@ class AssignedProjectsRemoteDataSource implements AssignedProjectsDataSource {
       endpoint: '${BackendEndPoint.projects}/$projectId/spaces/ceramic',
     );
     return CeramicSpacesResponse.fromJson(response as Map<String, dynamic>);
+  }
+
+  @override
+  Future<DurationExtensionModel> submitDurationExtension({
+    required String projectId,
+    required String workItemId,
+    required int requestedDurationDays,
+    required String reason,
+  }) async {
+    final response = await _databaseService.addData(
+      endpoint: '${BackendEndPoint.projects}/$projectId/work-items/$workItemId/duration-extensions',
+      data: {
+        'requested_duration_days': requestedDurationDays,
+        'reason': reason,
+      },
+    );
+    return DurationExtensionModel.fromJson(response['data'] as Map<String, dynamic>);
   }
 }

@@ -16,9 +16,11 @@ import '../../features/projects/domain/repositories/project_repository.dart';
 import '../../features/projects/domain/usecases/get_projects.dart';
 import '../../features/projects/domain/usecases/get_project_details.dart';
 import '../../features/projects/domain/usecases/get_work_item_update_details.dart'; // 🆕 Added
+import '../../features/projects/domain/usecases/submit_duration_extension.dart'; // 🆕 Added
 import '../../features/projects/presentation/cubit/assigned_project_cubit.dart';
 import '../../features/projects/presentation/cubit/assigned_project_details_cubit.dart';
 import '../../features/projects/presentation/cubit/item_update_cubit.dart'; // 🆕 Added
+import '../../features/projects/presentation/cubit/duration_extension_cubit.dart'; // 🆕 Added
 
 // Project Images Feature Imports
 import '../../features/project_images/data/datasources/project_images_remote_data_source.dart';
@@ -48,6 +50,14 @@ import '../../features/comments/domain/repositories/comment_repository.dart';
 import '../../features/comments/domain/usecases/add_comment_usecase.dart';
 import '../../features/comments/domain/usecases/get_comments_usecase.dart';
 import '../../features/comments/presentation/cubits/comment_cubit.dart';
+
+// Notifications Feature Imports
+import '../../features/notifications/data/datasources/notifications_remote_data_source.dart';
+import '../../features/notifications/data/repositories/notifications_repository_impl.dart';
+import '../../features/notifications/domain/repositories/notifications_repository.dart';
+import '../../features/notifications/domain/usecases/get_notifications.dart';
+import '../../features/notifications/domain/usecases/mark_notifications_as_read.dart';
+import '../../features/notifications/presentation/cubit/notifications_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -89,6 +99,7 @@ Future<void> setupSingltonGetIt() async {
   getIt.registerLazySingleton(() => GetProjects(getIt.get<ProjectRepository>()));
   getIt.registerLazySingleton(() => GetProjectDetails(getIt.get<ProjectRepository>()));
   getIt.registerLazySingleton(() => GetWorkItemUpdateDetails(getIt.get<AssignedProjectsRemoteDataSource>())); // 🆕 Fixed DI Type mismatch
+  getIt.registerLazySingleton(() => SubmitDurationExtension(getIt.get<ProjectRepository>())); // 🆕 Added
 
   // 4. Presentation Cubits (Factories ensure fresh instances per view lifecycle)
   getIt.registerFactory(() => AssignedProjectsCubit(getProjects: getIt.get<GetProjects>()));
@@ -97,6 +108,11 @@ Future<void> setupSingltonGetIt() async {
   // 🆕 Added Item Update Cubit
   getIt.registerFactory(() => ItemUpdateCubit(
     getWorkItemUpdateDetails: getIt.get<GetWorkItemUpdateDetails>(),
+  ));
+
+  // 🆕 Added Duration Extension Cubit
+  getIt.registerFactory(() => DurationExtensionCubit(
+    submitDurationExtension: getIt.get<SubmitDurationExtension>(),
   ));
 
   // ==========================================
@@ -195,5 +211,29 @@ Future<void> setupSingltonGetIt() async {
   getIt.registerFactory(() => CommentCubit(
     getCommentsUseCase: getIt.get<GetCommentsUseCase>(),
     addCommentUseCase: getIt.get<AddCommentUseCase>(),
+  ));
+
+  // ==========================================
+  // Notifications Feature
+  // ==========================================
+
+  // 1. Data Source
+  getIt.registerLazySingleton<NotificationsRemoteDataSource>(
+    () => NotificationsRemoteDataSourceImpl(getIt.get<DatabaseService>()),
+  );
+
+  // 2. Repository
+  getIt.registerLazySingleton<NotificationsRepository>(
+    () => NotificationsRepositoryImpl(remoteDataSource: getIt.get<NotificationsRemoteDataSource>()),
+  );
+
+  // 3. Domain Use Cases
+  getIt.registerLazySingleton(() => GetNotifications(getIt.get<NotificationsRepository>()));
+  getIt.registerLazySingleton(() => MarkNotificationsAsRead(getIt.get<NotificationsRepository>()));
+
+  // 4. Presentation Cubit Factory
+  getIt.registerFactory(() => NotificationsCubit(
+    getNotifications: getIt.get<GetNotifications>(),
+    markNotificationsAsRead: getIt.get<MarkNotificationsAsRead>(),
   ));
 }

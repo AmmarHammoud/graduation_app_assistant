@@ -9,6 +9,8 @@ import '../../../../core/services/get_it_service.dart';
 import '../../domain/entities/assigned_project.dart';
 import '../cubit/assigned_project_cubit.dart';
 import '../cubit/assigned_project_state.dart';
+import '../../../notifications/presentation/cubit/notifications_cubit.dart';
+import '../../../notifications/presentation/views/notifications_page.dart';
 
 class AssistantDashboardPage extends StatelessWidget {
   const AssistantDashboardPage({super.key});
@@ -34,7 +36,17 @@ class AssistantDashboardPage extends StatelessWidget {
           actions: [
             IconButton(
               icon: const Icon(Icons.notifications_none_outlined, color: Colors.black),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider(
+                      create: (context) => getIt<NotificationsCubit>()..loadNotifications(),
+                      child: const NotificationsPage(),
+                    ),
+                  ),
+                );
+              },
             ),
             const SizedBox(width: 8),
             GestureDetector(

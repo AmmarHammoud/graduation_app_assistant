@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:graduation_app_assistant/core/services/token_storage.dart';
 import 'package:graduation_app_assistant/features/auth/presentation/views/sign_in_view.dart';
 
@@ -11,8 +12,6 @@ import 'core/services/app_logger.dart';
 import 'core/services/fcm_notification_service.dart';
 import 'core/services/get_it_service.dart';
 import 'core/services/local_notification_service.dart';
-import 'features/projects/presentation/cubit/assigned_project_cubit.dart';
-import 'features/projects/presentation/views/project_dashboard_page.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -64,6 +63,16 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'Tajawal',
       ),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('ar', 'AE'),
+        Locale('en', 'US'),
+      ],
+      locale: const Locale('ar', 'AE'),
       home:
       // userSignedIn ? BlocProvider(
       //   create: (context) => getIt<AssignedProjectsCubit>()..loadDashboard('الكل'),

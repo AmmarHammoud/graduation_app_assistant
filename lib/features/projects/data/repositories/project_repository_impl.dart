@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:graduation_app_assistant/features/projects/domain/entities/assigned_proejct_details.dart';
 import 'package:graduation_app_assistant/features/projects/domain/entities/assigned_project.dart';
 import 'package:graduation_app_assistant/features/projects/domain/entities/project_space.dart';
+import 'package:graduation_app_assistant/features/projects/domain/entities/duration_extension_result.dart';
 import '../../../../core/errors/failures.dart';
 import '../../domain/repositories/project_repository.dart';
 import '../datasources/assigned_projects_remote_data_source.dart';
@@ -69,6 +70,26 @@ class ProjectRepositoryImpl implements ProjectRepository {
       return Right(response.data);
     } catch (e) {
       return Left(ServerFailure(errMessage: "تعذر تحميل مساحات السيراميك للمشروع: ${e.toString()}"));
+    }
+  }
+
+  @override
+  Future<Either<Failure, DurationExtensionResult>> submitDurationExtension({
+    required String projectId,
+    required String workItemId,
+    required int requestedDurationDays,
+    required String reason,
+  }) async {
+    try {
+      final model = await remoteDataSource.submitDurationExtension(
+        projectId: projectId,
+        workItemId: workItemId,
+        requestedDurationDays: requestedDurationDays,
+        reason: reason,
+      );
+      return Right(model);
+    } catch (e) {
+      return Left(ServerFailure(errMessage: "تعذر تقديم طلب تمديد الوقت: ${e.toString()}"));
     }
   }
 }
