@@ -14,7 +14,7 @@ class AssignedProjectDetailsModel extends AssignedProjectDetails {
     required super.workItems,
   });
 
-  factory AssignedProjectDetailsModel.fromJson(Map<String, dynamic> json) {
+  factory AssignedProjectDetailsModel.fromJson(Map<String, dynamic> json, {Map<String, dynamic>? matchingProject}) {
     // Navigate into the main 'data' block safely if it exists
     final Map<String, dynamic> dataEnvelope = json.containsKey('data')
         ? json['data'] as Map<String, dynamic>
@@ -38,7 +38,7 @@ class AssignedProjectDetailsModel extends AssignedProjectDetails {
         canUpdate = true;
       }
       // else {
-      //   // For UI fidelity with image_f15223, make active mid-tier items updatable even at 0%
+      //   // For UI fidelity with image_f15223 layout design
       //   final int itemId = item['id'] as int? ?? 0;
       //   if (itemId == 3 || itemId == 4 || itemId == 5) {
       //     statusLabel = 'قيد التنفيذ';
@@ -60,15 +60,36 @@ class AssignedProjectDetailsModel extends AssignedProjectDetails {
 
     final double rawProjectPercent = (dataEnvelope['project_percent'] as num? ?? 0).toDouble();
 
+    final String areaVal = matchingProject != null && matchingProject['apartment_area'] != null
+        ? matchingProject['apartment_area'].toString()
+        : (dataEnvelope['area'] ?? '120').toString();
+
+    final String heightVal = matchingProject != null && matchingProject['height'] != null
+        ? matchingProject['height'].toString()
+        : (dataEnvelope['height'] ?? '2.8').toString();
+
+    String supervisorNameVal = 'أحمد حمدان';
+    if (matchingProject != null) {
+      if (matchingProject['owner'] != null && matchingProject['owner']['name'] != null) {
+        supervisorNameVal = matchingProject['owner']['name'].toString();
+      } else if (matchingProject['project_manager'] != null && matchingProject['project_manager']['name'] != null) {
+        supervisorNameVal = matchingProject['project_manager']['name'].toString();
+      } else if (matchingProject['supervisor'] != null) {
+        supervisorNameVal = matchingProject['supervisor'].toString();
+      }
+    } else if (dataEnvelope['supervisor'] != null) {
+      supervisorNameVal = dataEnvelope['supervisor'] as String;
+    }
+
     return AssignedProjectDetailsModel(
       id: (dataEnvelope['id'] ?? '').toString(),
       title: dataEnvelope['name'] as String? ?? 'المشروع الحالي',
       location: dataEnvelope['location'] as String? ?? 'منطقة المزة، دمشق',
       statusText: rawProjectPercent >= 100.0 ? 'مكتمل' : 'قيد التنفيذ',
       progressPercentage: rawProjectPercent > 1.0 ? rawProjectPercent / 100.0 : rawProjectPercent,
-      areaText: "${dataEnvelope['area'] ?? '120'} م²",
-      heightText: "${dataEnvelope['height'] ?? '2.8'} م",
-      supervisorName: dataEnvelope['supervisor'] as String? ?? 'أحمد حمدان',
+      areaText: "$areaVal م²",
+      heightText: "$heightVal م",
+      supervisorName: supervisorNameVal,
       workItems: parsedItems,
     );
   }

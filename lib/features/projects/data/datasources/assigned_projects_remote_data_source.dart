@@ -55,9 +55,26 @@ class AssignedProjectsRemoteDataSource implements AssignedProjectsDataSource {
 
   @override
   Future<AssignedProjectDetailsModel> fetchAssignedProjectDetails(String projectId) async {
-    // TODO: Switch to live API endpoint execution when backend goes live:
     final response = await _databaseService.getData(endpoint: '${BackendEndPoint.projects}/$projectId/progress');
-    return AssignedProjectDetailsModel.fromJson(response);
+    
+    Map<String, dynamic>? matchingProject;
+    try {
+      final projectsResponse = await _databaseService.getData(endpoint: BackendEndPoint.projects);
+      if (projectsResponse is Map<String, dynamic> && projectsResponse['data'] is List<dynamic>) {
+        final List<dynamic> projectsList = projectsResponse['data'] as List<dynamic>;
+        for (final proj in projectsList) {
+          if (proj is Map<String, dynamic> && (proj['id'] ?? '').toString() == projectId.toString()) {
+            matchingProject = proj;
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      // Avoid letting project list load failures break the main details view
+      print('Error fetching projects list for matching project info: $e');
+    }
+
+    return AssignedProjectDetailsModel.fromJson(response, matchingProject: matchingProject);
   }
 
   @override
