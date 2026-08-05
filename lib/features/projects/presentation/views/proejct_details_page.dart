@@ -148,7 +148,7 @@ class AssistantProjectDetailsPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  SupervisorCard(details: details),
+                  //SupervisorCard(details: details),
                   const SizedBox(height: 24),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
