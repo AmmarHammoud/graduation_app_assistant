@@ -55,7 +55,7 @@ class AssignedProjectsRemoteDataSource implements AssignedProjectsDataSource {
 
   @override
   Future<AssignedProjectDetailsModel> fetchAssignedProjectDetails(String projectId) async {
-    final response = await _databaseService.getData(endpoint: '${BackendEndPoint.projects}/$projectId/progress');
+    final response = await _databaseService.getData(endpoint: '${BackendEndPoint.projects}/$projectId/work-items');
     
     Map<String, dynamic>? matchingProject;
     try {
@@ -74,7 +74,7 @@ class AssignedProjectsRemoteDataSource implements AssignedProjectsDataSource {
       print('Error fetching projects list for matching project info: $e');
     }
 
-    return AssignedProjectDetailsModel.fromJson(response, matchingProject: matchingProject);
+    return AssignedProjectDetailsModel.fromJson(response, matchingProject: matchingProject, projectId: projectId);
   }
 
   @override

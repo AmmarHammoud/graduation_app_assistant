@@ -14,37 +14,35 @@ class AssignedProjectDetailsModel extends AssignedProjectDetails {
     required super.workItems,
   });
 
-  factory AssignedProjectDetailsModel.fromJson(Map<String, dynamic> json, {Map<String, dynamic>? matchingProject}) {
-    // Navigate into the main 'data' block safely if it exists
-    final Map<String, dynamic> dataEnvelope = json.containsKey('data')
-        ? json['data'] as Map<String, dynamic>
-        : json;
-
-    final List<dynamic> rawItems = dataEnvelope['items'] as List<dynamic>? ?? [];
+  factory AssignedProjectDetailsModel.fromJson(
+    Map<String, dynamic> json, {
+    Map<String, dynamic>? matchingProject,
+    String? projectId,
+  }) {
+    // Safely extract the list of work items
+    final List<dynamic> rawItems = json['data'] is List<dynamic>
+        ? json['data'] as List<dynamic>
+        : (json['data'] is Map<String, dynamic> &&
+                (json['data'] as Map<String, dynamic>).containsKey('items'))
+            ? (json['data'] as Map<String, dynamic>)['items'] as List<dynamic>
+            : [];
 
     // Track task sequencing on the app-side using list indices
     int currentOrder = 1;
     final parsedItems = rawItems.map((item) {
       final double rawPercent = (item['percent'] as num? ?? 0).toDouble();
 
-      // Map status flags dynamically based on the percentage values
+      // Map status flags dynamically based on the status field or percentage values
       String statusLabel = 'لم يبدأ';
       bool canUpdate = false;
 
-      if (rawPercent >= 100.0) {
-        statusLabel = 'مكتمل';
-      } else if (rawPercent > 0.0) { /// change this to: "> -1.0" test update work-item progress
+      final String rawStatus = item['status'] as String? ?? '';
+      if (rawStatus == 'ongoing' || (rawPercent > 0.0 && rawPercent < 100.0)) {
         statusLabel = 'قيد التنفيذ';
         canUpdate = true;
+      } else if (rawStatus == 'completed' || rawPercent >= 100.0) {
+        statusLabel = 'مكتمل';
       }
-      // else {
-      //   // For UI fidelity with image_f15223 layout design
-      //   final int itemId = item['id'] as int? ?? 0;
-      //   if (itemId == 3 || itemId == 4 || itemId == 5) {
-      //     statusLabel = 'قيد التنفيذ';
-      //     canUpdate = true;
-      //   }
-      // }
 
       return AssistantWorkItemEntity(
         id: item['id'] as int? ?? 0,
@@ -58,15 +56,22 @@ class AssignedProjectDetailsModel extends AssignedProjectDetails {
       );
     }).toList();
 
-    final double rawProjectPercent = (dataEnvelope['project_percent'] as num? ?? 0).toDouble();
+    // Overall project percent calculation
+    double rawProjectPercent = 0.0;
+    if (matchingProject != null && matchingProject['progress_percent'] != null) {
+      rawProjectPercent = (matchingProject['progress_percent'] as num).toDouble();
+    } else if (json['data'] is Map<String, dynamic> &&
+        (json['data'] as Map<String, dynamic>).containsKey('project_percent')) {
+      rawProjectPercent = ((json['data'] as Map<String, dynamic>)['project_percent'] as num? ?? 0).toDouble();
+    }
 
     final String areaVal = matchingProject != null && matchingProject['apartment_area'] != null
         ? matchingProject['apartment_area'].toString()
-        : (dataEnvelope['area'] ?? '120').toString();
+        : (json['data'] is Map<String, dynamic> ? (json['data'] as Map<String, dynamic>)['area']?.toString() ?? '120' : '120');
 
     final String heightVal = matchingProject != null && matchingProject['height'] != null
         ? matchingProject['height'].toString()
-        : (dataEnvelope['height'] ?? '2.8').toString();
+        : (json['data'] is Map<String, dynamic> ? (json['data'] as Map<String, dynamic>)['height']?.toString() ?? '2.8' : '2.8');
 
     String supervisorNameVal = 'أحمد حمدان';
     if (matchingProject != null) {
@@ -77,14 +82,30 @@ class AssignedProjectDetailsModel extends AssignedProjectDetails {
       } else if (matchingProject['supervisor'] != null) {
         supervisorNameVal = matchingProject['supervisor'].toString();
       }
-    } else if (dataEnvelope['supervisor'] != null) {
-      supervisorNameVal = dataEnvelope['supervisor'] as String;
+    } else if (json['data'] is Map<String, dynamic> && (json['data'] as Map<String, dynamic>)['supervisor'] != null) {
+      supervisorNameVal = (json['data'] as Map<String, dynamic>)['supervisor'] as String;
     }
 
+    String projIdVal = projectId ?? '';
+    if (projIdVal.isEmpty && rawItems.isNotEmpty && rawItems.first is Map<String, dynamic>) {
+      projIdVal = (rawItems.first['project_id'] ?? '').toString();
+    }
+    if (projIdVal.isEmpty && json['data'] is Map<String, dynamic>) {
+      projIdVal = ((json['data'] as Map<String, dynamic>)['id'] ?? '').toString();
+    }
+
+    final String projTitleVal = matchingProject != null
+        ? matchingProject['name'] as String? ?? 'المشروع الحالي'
+        : (json['data'] is Map<String, dynamic> ? (json['data'] as Map<String, dynamic>)['name'] as String? ?? 'المشروع الحالي' : 'المشروع الحالي');
+
+    final String projLocationVal = matchingProject != null
+        ? matchingProject['location'] as String? ?? 'منطقة المزة، دمشق'
+        : (json['data'] is Map<String, dynamic> ? (json['data'] as Map<String, dynamic>)['location'] as String? ?? 'منطقة المزة، دمشق' : 'منطقة المزة، دمشق');
+
     return AssignedProjectDetailsModel(
-      id: (dataEnvelope['id'] ?? '').toString(),
-      title: dataEnvelope['name'] as String? ?? 'المشروع الحالي',
-      location: dataEnvelope['location'] as String? ?? 'منطقة المزة، دمشق',
+      id: projIdVal,
+      title: projTitleVal,
+      location: projLocationVal,
       statusText: rawProjectPercent >= 100.0 ? 'مكتمل' : 'قيد التنفيذ',
       progressPercentage: rawProjectPercent > 1.0 ? rawProjectPercent / 100.0 : rawProjectPercent,
       areaText: "$areaVal م²",
