@@ -27,41 +27,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          leadingWidth: 100,
-          leading: Row(
-            children: [
-              const SizedBox(width: 16),
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                icon: const Icon(Icons.menu, color: Colors.black, size: 24),
-                onPressed: () {},
-              ),
-              const SizedBox(width: 14),
-              Stack(
-                alignment: Alignment.topRight,
-                children: [
-                  const Icon(
-                    Icons.notifications_none_rounded,
-                    color: Colors.black,
-                    size: 26,
-                  ),
-                  Positioned(
-                    top: 2,
-                    right: 2,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFEF4444),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
           actions: [
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
