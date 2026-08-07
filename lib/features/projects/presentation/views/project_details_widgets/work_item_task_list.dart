@@ -100,37 +100,37 @@ class WorkItemTaskList extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 12),
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => BlocProvider(
-                                      create: (context) => getIt<CommentCubit>()..loadComments(workItemId: item.id),
-                                      child: WorkItemCommentsPage(
-                                        workItemId: item.id,
-                                        workItemName: item.name,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                              borderRadius: BorderRadius.circular(8),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.chat_bubble_outline_rounded, size: 15, color: Colors.grey.shade500),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      '${item.commentCount}',
-                                      style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                            // InkWell(
+                            //   onTap: () {
+                            //     Navigator.push(
+                            //       context,
+                            //       MaterialPageRoute(
+                            //         builder: (_) => BlocProvider(
+                            //           create: (context) => getIt<CommentCubit>()..loadComments(workItemId: item.id),
+                            //           child: WorkItemCommentsPage(
+                            //             workItemId: item.id,
+                            //             workItemName: item.name,
+                            //           ),
+                            //         ),
+                            //       ),
+                            //     );
+                            //   },
+                            //   borderRadius: BorderRadius.circular(8),
+                            //   child: Padding(
+                            //     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                            //     child: Row(
+                            //       mainAxisSize: MainAxisSize.min,
+                            //       children: [
+                            //         Icon(Icons.chat_bubble_outline_rounded, size: 15, color: Colors.grey.shade500),
+                            //         const SizedBox(width: 6),
+                            //         Text(
+                            //           '${item.commentCount}',
+                            //           style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.bold),
+                            //         ),
+                            //       ],
+                            //     ),
+                            //   ),
+                            // ),
                           ],
                         )
                       ],
