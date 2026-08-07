@@ -16,10 +16,12 @@ import 'duration_extension_page.dart';
 
 class UpdateProjectProgressPage extends StatefulWidget {
   final int workItemId;
+  final List<dynamic>? details;
 
   const UpdateProjectProgressPage({
     super.key,
     required this.workItemId,
+    this.details,
   });
 
   @override
@@ -972,21 +974,53 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
   }
 
   List<NumericFieldConfig> _getNumericFieldsConfig(String itemName) {
+    int totalWoodDoors = 4; // fallback/default
+    int totalAluminumDoors = 2; // fallback/default
+    int totalWindows = 6; // fallback/default
+    int totalAluminum = 8; // fallback/default
+    int totalDoors = 6; // fallback/default
+    int totalKitchenCabinet = 6; // fallback/default
+
+    if (widget.details != null && widget.details!.isNotEmpty) {
+      for (final element in widget.details!) {
+        if (element is Map<String, dynamic>) {
+          if (element.containsKey('total_wood_doors')) {
+            totalWoodDoors = int.tryParse(element['total_wood_doors']?.toString() ?? '') ?? totalWoodDoors;
+          }
+          if (element.containsKey('total_aluminum_doors')) {
+            totalAluminumDoors = int.tryParse(element['total_aluminum_doors']?.toString() ?? '') ?? totalAluminumDoors;
+          }
+          if (element.containsKey('total_windows')) {
+            totalWindows = int.tryParse(element['total_windows']?.toString() ?? '') ?? totalWindows;
+          }
+          if (element.containsKey('total_aluminum')) {
+            totalAluminum = int.tryParse(element['total_aluminum']?.toString() ?? '') ?? totalAluminum;
+          }
+          if (element.containsKey('total_doors')) {
+            totalDoors = int.tryParse(element['total_doors']?.toString() ?? '') ?? totalDoors;
+          }
+          if (element.containsKey('total_kitchen_cabinet')) {
+            totalKitchenCabinet = int.tryParse(element['total_kitchen_cabinet']?.toString() ?? '') ?? totalKitchenCabinet;
+          }
+        }
+      }
+    }
+
     final name = itemName.toLowerCase();
     if (name.contains('ملابن')) {
       return [
-        NumericFieldConfig(key: 'completed_wood_doors', title: 'أبواب خشب', initialValue: 4, totalValue: 5),
-        NumericFieldConfig(key: 'completed_aluminum_doors', title: 'أبواب ألمنيوم', initialValue: 2, totalValue: 3),
-        NumericFieldConfig(key: 'completed_windows', title: 'شبابيك', initialValue: 6, totalValue: 8),
+        NumericFieldConfig(key: 'completed_wood_doors', title: 'أبواب خشب', initialValue: totalWoodDoors, totalValue: totalWoodDoors),
+        NumericFieldConfig(key: 'completed_aluminum_doors', title: 'أبواب ألمنيوم', initialValue: totalAluminumDoors, totalValue: totalAluminumDoors),
+        NumericFieldConfig(key: 'completed_windows', title: 'شبابيك', initialValue: totalWindows, totalValue: totalWindows),
       ];
     } else if (name.contains('ألمنيوم') || name.contains('المنيوم')) {
       return [
-        NumericFieldConfig(key: 'completed_aluminum', title: 'ألمنيوم وأبجورات', initialValue: 5, totalValue: 12),
+        NumericFieldConfig(key: 'completed_aluminum', title: 'ألمنيوم وأبجورات', initialValue: totalAluminum, totalValue: totalAluminum),
       ];
     } else if (name.contains('أبواب') || name.contains('ابواب') || name.contains('نجارة')) {
       return [
-        NumericFieldConfig(key: 'completed_doors', title: 'أبواب خشب', initialValue: 2, totalValue: 5),
-        NumericFieldConfig(key: 'kitchen_cabinet_done', title: 'أغطية أبجور', initialValue: 0, totalValue: 6),
+        NumericFieldConfig(key: 'completed_doors', title: 'أبواب خشب', initialValue: totalDoors, totalValue: totalDoors),
+        NumericFieldConfig(key: 'kitchen_cabinet_done', title: 'أغطية أبجور', initialValue: 0, totalValue: totalKitchenCabinet),
       ];
     }
     return [];

@@ -45,6 +45,7 @@ class AssistantWorkItemEntity extends Equatable {
   final double completionPercent;
   final int commentCount;
   final bool canUpdate; // true if it shows the "تحديث" button
+  final List<dynamic>? details;
 
   const AssistantWorkItemEntity({
     required this.id,
@@ -54,6 +55,7 @@ class AssistantWorkItemEntity extends Equatable {
     required this.completionPercent,
     required this.commentCount,
     required this.canUpdate,
+    this.details,
   });
 
   @override
@@ -65,5 +67,6 @@ class AssistantWorkItemEntity extends Equatable {
     completionPercent,
     commentCount,
     canUpdate,
+    details,
   ];
 }

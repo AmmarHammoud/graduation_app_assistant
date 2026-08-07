@@ -19,33 +19,61 @@ class ItemUpdateCubit extends Cubit<ItemUpdateState> {
     required String itemId,
     required String projectId,
     required String itemName,
+    List<dynamic>? details,
   }) async {
     this.projectId = projectId;
     emit(ItemUpdateLoading());
     try {
-      final details = await getWorkItemUpdateDetails(
+      final itemDetails = await getWorkItemUpdateDetails(
         projectId: projectId,
         itemId: itemId,
         itemName: itemName,
       );
 
+      int woodDoors = 4;
+      int aluminumDoors = 2;
+      int windows = 6;
+      int aluminum = 8;
+      int doors = 6;
+      int kitchenCabinet = 0;
+
+      if (details != null && details.isNotEmpty) {
+        for (final element in details) {
+          if (element is Map<String, dynamic>) {
+            if (element.containsKey('total_wood_doors')) {
+              woodDoors = int.tryParse(element['total_wood_doors']?.toString() ?? '') ?? woodDoors;
+            }
+            if (element.containsKey('total_aluminum_doors')) {
+              aluminumDoors = int.tryParse(element['total_aluminum_doors']?.toString() ?? '') ?? aluminumDoors;
+            }
+            if (element.containsKey('total_windows')) {
+              windows = int.tryParse(element['total_windows']?.toString() ?? '') ?? windows;
+            }
+            if (element.containsKey('total_aluminum')) {
+              aluminum = int.tryParse(element['total_aluminum']?.toString() ?? '') ?? aluminum;
+            }
+            if (element.containsKey('total_doors')) {
+              doors = int.tryParse(element['total_doors']?.toString() ?? '') ?? doors;
+            }
+          }
+        }
+      }
+
       final Map<String, int> initialNumericValues = {};
       final name = itemName.toLowerCase();
       if (name.contains('ملابن')) {
-        initialNumericValues['completed_wood_doors'] = 4;
-        initialNumericValues['completed_aluminum_doors'] = 2;
-        initialNumericValues['completed_windows'] = 6;
+        initialNumericValues['completed_wood_doors'] = woodDoors;
+        initialNumericValues['completed_aluminum_doors'] = aluminumDoors;
+        initialNumericValues['completed_windows'] = windows;
       } else if (name.contains('ألمنيوم') || name.contains('المنيوم')) {
-        initialNumericValues['total_aluminum'] = 12;
-        initialNumericValues['completed_aluminum'] = 5;
+        initialNumericValues['completed_aluminum'] = aluminum;
       } else if (name.contains('أبواب') || name.contains('ابواب') || name.contains('نجارة')) {
-        initialNumericValues['total_doors'] = 5;
-        initialNumericValues['completed_doors'] = 2;
-        initialNumericValues['kitchen_cabinet_done'] = 0;
+        initialNumericValues['completed_doors'] = doors;
+        initialNumericValues['kitchen_cabinet_done'] = kitchenCabinet;
       }
 
       emit(ItemUpdateLoaded(
-        data: details,
+        data: itemDetails,
         numericValues: initialNumericValues,
       ));
     } catch (_) {

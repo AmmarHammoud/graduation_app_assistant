@@ -53,6 +53,7 @@ class AssignedProjectDetailsModel extends AssignedProjectDetails {
         completionPercent: rawPercent > 1.0 ? rawPercent / 100.0 : rawPercent,
         commentCount: (item['details'] as List<dynamic>? ?? []).length, // Safely counting sub-details arrays as comments for UI mock matching
         canUpdate: canUpdate,
+        details: item['details'] as List<dynamic>?,
       );
     }).toList();
 

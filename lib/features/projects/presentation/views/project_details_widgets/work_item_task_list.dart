@@ -151,13 +151,14 @@ class WorkItemTaskList extends StatelessWidget {
                                     itemId: item.id.toString(),
                                     projectId: projectId,
                                     itemName: item.name,
+                                    details: item.details,
                                   ),
                                 ),
                                 BlocProvider(
                                   create: (context) => getIt<CommentCubit>()..loadComments(workItemId: item.id),
                                 ),
                               ],
-                              child: UpdateProjectProgressPage(workItemId: item.id),
+                              child: UpdateProjectProgressPage(workItemId: item.id, details: item.details),
                             ),
                           ),
                         );
