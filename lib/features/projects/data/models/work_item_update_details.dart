@@ -17,6 +17,10 @@ String _mapSpaceTypeToArabic(String type) {
       return 'غرفة معيشة (Living Room)';
     case 'bathroom':
       return 'دورة مياه (Bathroom)';
+    case 'shed':
+      return 'مظلة (shed)';
+    case 'room':
+      return 'غرفة (room)';
     default:
       return type;
   }
