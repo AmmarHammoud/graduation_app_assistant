@@ -23,7 +23,7 @@ class AssignedProjectModel extends AssignedProject {
 
   static String _translateStatus(String status) {
     switch (status) {
-      case 'in_progress': return 'قيد التنفيذ';
+      case 'ongoing': return 'قيد التنفيذ';
       case 'completed': return 'منجز';
       default: return 'لم يبدأ';
     }
