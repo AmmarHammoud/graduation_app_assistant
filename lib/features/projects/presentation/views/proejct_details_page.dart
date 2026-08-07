@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:graduation_app_assistant/core/theme/app_colors.dart';
 import 'package:graduation_app_assistant/features/project_images/presentation/cubits/project_images_cubit.dart';
 import 'package:graduation_app_assistant/features/project_images/presentation/views/project_images_page.dart';
 import 'package:graduation_app_assistant/features/expenses/presentation/cubits/expenses_cubit.dart';
@@ -23,24 +24,27 @@ class AssistantProjectDetailsPage extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
         appBar: AppBar(
-          backgroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: Colors.black),
+            icon: Icon(Icons.arrow_back_rounded, color: Theme.of(context).primaryColor),
             onPressed: () => Navigator.pop(context),
           ),
-          title: const Text(
+          title: Text(
             'تفاصيل المشروع',
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+            style: TextStyle(
+              fontFamily: 'Tajawal',
+              color: Theme.of(context).primaryColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
           ),
           centerTitle: true,
         ),
         body: BlocBuilder<AssignedProjectDetailsCubit, AssignedProjectDetailsState>(
           builder: (context, state) {
             if (state is AssignedProjectDetailsLoading) {
-              return const Center(child: CircularProgressIndicator(color: Color(0xFF006D5B)));
+              return const Center(child: CircularProgressIndicator(color: AppColors.accentGold));
             }
             if (state is AssignedProjectDetailsLoaded) {
               final details = state.details;
@@ -64,12 +68,15 @@ class AssistantProjectDetailsPage extends StatelessWidget {
                               ),
                             );
                           },
-                          icon: const Icon(Icons.image_outlined, size: 18, color: Colors.white),
-                          label: const Text('صور الوحدة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Tajawal')),
+                          icon: const Icon(Icons.image_outlined, size: 18, color: AppColors.primary),
+                          label: const Text('صور الوحدة', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontFamily: 'Tajawal')),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0F172A),
+                            backgroundColor: AppColors.form,
                             padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              side: const BorderSide(color: AppColors.border, width: 0.8),
+                            ),
                             elevation: 0,
                           ),
                         ),
@@ -95,7 +102,7 @@ class AssistantProjectDetailsPage extends StatelessWidget {
                           icon: const Icon(Icons.wallet_outlined, size: 18, color: Colors.white),
                           label: const Text('مصاريف الورشة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Tajawal')),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF006D5B),
+                            backgroundColor: AppColors.primary,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             elevation: 0,
@@ -139,7 +146,7 @@ class AssistantProjectDetailsPage extends StatelessWidget {
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF042623), // Beautiful primary dark green
+                        backgroundColor: AppColors.accentGold,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         elevation: 0,
@@ -158,13 +165,6 @@ class AssistantProjectDetailsPage extends StatelessWidget {
                         const Text(
                           'قائمة الأعمال',
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                        ),
-                        Row(
-                          children: [
-                            Icon(Icons.filter_list_rounded, size: 18, color: Colors.grey.shade600),
-                            const SizedBox(width: 4),
-                            Text('فلترة', style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
-                          ],
                         ),
                       ],
                     ),

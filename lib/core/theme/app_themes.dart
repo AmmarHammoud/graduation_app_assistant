@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 
-const kArabicFontFamily = 'Cairo';
+const kArabicFontFamily = 'Tajawal';
 
 class AppTheme {
   // LIGHT THEME
@@ -16,7 +16,7 @@ class AppTheme {
     scaffoldBackgroundColor: AppColors.backgroundLight,
 
     dividerTheme: const DividerThemeData(
-      color: Color(0xFFCAC4B0),
+      color: AppColors.border,
       thickness: .8,
       space: 0,
     ),
@@ -48,10 +48,10 @@ class AppTheme {
         letterSpacing: 0.5,
         color: AppColors.textDark,
       ),
-      iconTheme: const IconThemeData(color: Color(0xFF374151), size: 22),
-      actionsIconTheme: const IconThemeData(color: Color(0xFF374151), size: 22),
+      iconTheme: const IconThemeData(color: AppColors.primary, size: 22),
+      actionsIconTheme: const IconThemeData(color: AppColors.primary, size: 22),
       shape: const Border(
-        bottom: BorderSide(color: Color(0xFFD6CFBC), width: 0.8),
+        bottom: BorderSide(color: AppColors.border, width: 0.8),
       ),
       systemOverlayStyle: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -113,7 +113,7 @@ class AppTheme {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFFD6CFBC), width: 1),
+        borderSide: const BorderSide(color: AppColors.border, width: 1),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),

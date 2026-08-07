@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:graduation_app_assistant/core/services/token_storage.dart';
 import 'package:graduation_app_assistant/features/auth/presentation/views/sign_in_view.dart';
+import 'package:graduation_app_assistant/core/theme/app_themes.dart';
 
 
 import 'core/services/app_logger.dart';
@@ -59,10 +60,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Graduation App Assistant',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'Tajawal',
-      ),
+      theme: AppTheme.lightTheme,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

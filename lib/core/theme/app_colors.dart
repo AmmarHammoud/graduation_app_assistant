@@ -1,31 +1,30 @@
 import 'package:flutter/material.dart';
 
 abstract class AppColors {
-  // اللون الأساسي الحكومي (الأخضر الغامق)
-  static const Color primary = Color(0xFF042623);
+  // اللون الأساسي: حبر (Ink)
+  static const Color primary = Color(0xFF1C2624);
 
-  // لون ذهبي من الهوية
-  static const Color accentGold = Color(0xFFB9A779);
+  // لون اللمسة: ذهب نحاسي (Brass Gold)
+  static const Color accentGold = Color(0xFFC99A46);
 
-  // الخلفيات (جو حكومي رسمي، دافئ شوي مو أبيض فاقع)
-  static const Color backgroundLight = Color(
-    0xFFEDEBE0,
-  ); // من الأوف-وايت بالهوية
-  static const Color backgroundDark = Color(0xFF0B0E10);
+  // الخلفية: ورق (Paper)
+  static const Color backgroundLight = Color(0xFFF6F2EA);
+  static const Color backgroundDark = Color(0xFF0F1211); // Ink based dark bg
 
-  static const Color form = Color(0xFFF7F5EE); // فورم أفتح شوي من الخلفية
-  static const Color border = Color(0xFFCAC4B0); // رمادي مائل للبيج
+  // الحقول والحدود
+  static const Color form = Color(0xFFFFFFFF); // أبيض ناصع للتباين فوق الخلفية الورقية
+  static const Color border = Color(0xFFDCD8CF); // رمادي حجري فاتح متناغم
 
   // البطاقات
   static const Color cardLight = Colors.white;
-  static const Color cardDark = Color(0xFF1E293B);
+  static const Color cardDark = Color(0xFF1B2321); // Ink based dark card
 
   // النصوص
-  static const Color textDark = Color(0xFF111827);
-  static const Color textGrey = Color(0xFF6B7280);
+  static const Color textDark = Color(0xFF1C2624); // اللون الأساسي كحبر للنصوص الداكنة
+  static const Color textGrey = Color(0xFF8B8478); // لون الحجر (Stone) للنصوص الثانوية
 
   // الحالات
-  static const Color success = Color(0xFF16A34A); // أخضر مقبول وواضح
-  static const Color warning = accentGold; // استغلال الذهبي كتحذير/تنبيه
-  static const Color error = Color(0xFFDC2626); // أحمر واضح للأخطاء
+  static const Color success = Color(0xFF006D5B); // أخضر أنيق متناغم مع الحبر والذهب
+  static const Color warning = Color(0xFFE28A2B); // برتقالي نحاسي دافئ للتحذير
+  static const Color error = Color(0xFFBC3434); // أحمر قرميدي للأخطاء
 }

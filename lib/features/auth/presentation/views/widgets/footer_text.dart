@@ -18,11 +18,11 @@ class FooterText extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         const Text(
-          '© 2024 نظام إدارة العقارات المتكامل. جميع الحقوق محفوظة.',
+          '© 2026 منصة مُتْقِن لإكساء الشقق السكنية. جميع الحقوق محفوظة.',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 12,
-            color: Color(0xFF9CA3AF),
+            fontSize: 11,
+            color: Color(0xFF8B8478), // Use Stone gray color
             height: 1.5,
           ),
         ),

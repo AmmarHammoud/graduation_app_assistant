@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:loading_indicator/loading_indicator.dart';
 
+import '../../../../../core/theme/app_colors.dart';
 import '../../cubits/sign_in/sign_in_cubit.dart';
 import 'sign_in_text_field_section.dart';
 
@@ -30,13 +31,14 @@ class _LoginCardState extends State<LoginCard> {
     return Container(
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24.0),
+        color: AppColors.cardLight,
+        borderRadius: BorderRadius.circular(20.0),
+        border: Border.all(color: AppColors.border, width: 0.8),
         boxShadow: [
           BoxShadow(
-            color: const Color.fromRGBO(0, 0, 0, 0.03),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: AppColors.primary.withOpacity(0.04),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
@@ -46,11 +48,12 @@ class _LoginCardState extends State<LoginCard> {
         children: [
           const Center(
             child: Text(
-              'تسجيل الدخول',
+              'تسجيل الدخول لشركاء العمل',
               style: TextStyle(
-                fontSize: 22,
+                fontFamily: 'Tajawal',
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF111827),
+                color: AppColors.textDark,
               ),
             ),
           ),
@@ -58,42 +61,48 @@ class _LoginCardState extends State<LoginCard> {
 
           // Email Field
           SignInTextFieldSection(formKey: _formKey),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
           // Submit Button
           BlocBuilder<SignInCubit, SignInState>(
             builder: (context, state) => SizedBox(
               width: double.infinity,
-              height: 54,
+              height: 52,
               child: ElevatedButton(
                 onPressed: () {
                   // Handle business logic/bloc trigger here
                   if (_formKey.currentState?.saveAndValidate() ?? false) {
-                    final email = _formKey.currentState?.value['email'] as String;
-                    final password =
+                     final email = _formKey.currentState?.value['email'] as String;
+                     final password =
                         _formKey.currentState?.value['password'] as String;
-                    context.read<SignInCubit>().signIn(email, password);
+                     context.read<SignInCubit>().signIn(email, password);
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF111827),
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   elevation: 0,
                 ),
-                child: state is SignInLoading ? LoadingIndicator(
-                              indicatorType: Indicator.ballPulse,
-                              colors: [Colors.white],
-                              strokeWidth: 2,
-                            ) : Row(
+                child: state is SignInLoading ? const SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: LoadingIndicator(
+                                indicatorType: Indicator.ballPulse,
+                                colors: [Colors.white],
+                                strokeWidth: 2,
+                              ),
+                ) : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
-                    Icon(Icons.arrow_back, color: Colors.white, size: 18),
+                    Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
                     SizedBox(width: 8),
                     Text(
-                      'تسجيل الدخول',
+                      'دخول',
                       style: TextStyle(
+                        fontFamily: 'Tajawal',
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
