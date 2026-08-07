@@ -395,7 +395,6 @@ class _ProjectImagesPageState extends State<ProjectImagesPage> {
             );
           },
         ),
-        bottomNavigationBar: _buildBottomNavigationBar(),
       ),
     );
   }
@@ -753,67 +752,5 @@ class _ProjectImagesPageState extends State<ProjectImagesPage> {
     return loadingProgress == null || 
            loadingProgress.expectedTotalBytes == null || 
            loadingProgress.cumulativeBytesLoaded == loadingProgress.expectedTotalBytes;
-  }
-
-  // Premium Custom Bottom Navigation Bar
-  Widget _buildBottomNavigationBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 15,
-            offset: const Offset(0, -4),
-          )
-        ],
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildBottomNavItem(Icons.home_outlined, 'الرئيسية', false),
-              _buildBottomNavItem(Icons.image_outlined, 'الصور', true),
-              _buildBottomNavItem(Icons.notifications_none_outlined, 'التنبيهات', false),
-              _buildBottomNavItem(Icons.person_outline, 'الشخصي', false),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomNavItem(IconData icon, String label, bool isActive) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: isActive
-          ? BoxDecoration(
-              color: const Color(0xFFE6F7F4),
-              borderRadius: BorderRadius.circular(16),
-            )
-          : null,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: isActive ? const Color(0xFF006D5B) : const Color(0xFF64748B),
-            size: isActive ? 22 : 20,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              color: isActive ? const Color(0xFF006D5B) : const Color(0xFF64748B),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
