@@ -30,30 +30,33 @@ class ItemUpdateCubit extends Cubit<ItemUpdateState> {
         itemName: itemName,
       );
 
-      int woodDoors = 4;
-      int aluminumDoors = 2;
-      int windows = 6;
-      int aluminum = 8;
-      int doors = 6;
+      int woodDoors = 0;
+      int aluminumDoors = 0;
+      int windows = 0;
+      int aluminum = 0;
+      int doors = 0;
       int kitchenCabinet = 0;
 
       if (details != null && details.isNotEmpty) {
         for (final element in details) {
           if (element is Map<String, dynamic>) {
-            if (element.containsKey('total_wood_doors')) {
-              woodDoors = int.tryParse(element['total_wood_doors']?.toString() ?? '') ?? woodDoors;
+            if (element.containsKey('completed_wood_doors')) {
+              woodDoors = int.tryParse(element['completed_wood_doors']?.toString() ?? '') ?? woodDoors;
             }
-            if (element.containsKey('total_aluminum_doors')) {
-              aluminumDoors = int.tryParse(element['total_aluminum_doors']?.toString() ?? '') ?? aluminumDoors;
+            if (element.containsKey('completed_aluminum_doors')) {
+              aluminumDoors = int.tryParse(element['completed_aluminum_doors']?.toString() ?? '') ?? aluminumDoors;
             }
-            if (element.containsKey('total_windows')) {
-              windows = int.tryParse(element['total_windows']?.toString() ?? '') ?? windows;
+            if (element.containsKey('completed_windows')) {
+              windows = int.tryParse(element['completed_windows']?.toString() ?? '') ?? windows;
             }
-            if (element.containsKey('total_aluminum')) {
-              aluminum = int.tryParse(element['total_aluminum']?.toString() ?? '') ?? aluminum;
+            if (element.containsKey('completed_aluminum')) {
+              aluminum = int.tryParse(element['completed_aluminum']?.toString() ?? '') ?? aluminum;
             }
-            if (element.containsKey('total_doors')) {
-              doors = int.tryParse(element['total_doors']?.toString() ?? '') ?? doors;
+            if (element.containsKey('completed_doors')) {
+              doors = int.tryParse(element['completed_doors']?.toString() ?? '') ?? doors;
+            }
+            if (element.containsKey('kitchen_cabinet_done')) {
+              kitchenCabinet = int.tryParse(element['kitchen_cabinet_done']?.toString() ?? '') ?? kitchenCabinet;
             }
           }
         }
@@ -75,6 +78,7 @@ class ItemUpdateCubit extends Cubit<ItemUpdateState> {
       emit(ItemUpdateLoaded(
         data: itemDetails,
         numericValues: initialNumericValues,
+        originalNumericValues: Map<String, int>.from(initialNumericValues),
       ));
     } catch (_) {
       emit(const ItemUpdateError('فشل جلب تفاصيل تحديث البند'));
@@ -175,6 +179,43 @@ class ItemUpdateCubit extends Cubit<ItemUpdateState> {
     emit(curr.copyWith(chosenImagesByField: updatedMap));
   }
 
+  void removeNumericImageAtIndex(String fieldKey, int index) {
+    if (state is! ItemUpdateLoaded) return;
+    final curr = state as ItemUpdateLoaded;
+    final updatedMap = Map<String, List<String>>.from(curr.chosenImagesByField);
+    if (updatedMap.containsKey(fieldKey)) {
+      final images = List<String>.from(updatedMap[fieldKey] ?? []);
+      if (index >= 0 && index < images.length) {
+        images.removeAt(index);
+        if (images.isEmpty) {
+          updatedMap.remove(fieldKey);
+        } else {
+          updatedMap[fieldKey] = images;
+        }
+        emit(curr.copyWith(chosenImagesByField: updatedMap));
+      }
+    }
+  }
+
+  String _getFieldArabicTitle(String key) {
+    switch (key) {
+      case 'completed_wood_doors':
+        return 'أبواب خشب';
+      case 'completed_aluminum_doors':
+        return 'أبواب ألمنيوم';
+      case 'completed_windows':
+        return 'شبابيك';
+      case 'completed_aluminum':
+        return 'ألمنيوم وأبجورات';
+      case 'completed_doors':
+        return 'أبواب خشب';
+      case 'kitchen_cabinet_done':
+        return 'أغطية أبجور';
+      default:
+        return key;
+    }
+  }
+
   Future<void> sendNumericRequestToAdmin() async {
     if (state is! ItemUpdateLoaded) return;
     final curr = state as ItemUpdateLoaded;
@@ -185,6 +226,7 @@ class ItemUpdateCubit extends Cubit<ItemUpdateState> {
         chosenImagesBySpace: curr.chosenImagesBySpace,
         submittingSpaceIds: curr.submittingSpaceIds,
         numericValues: curr.numericValues,
+        originalNumericValues: curr.originalNumericValues,
         chosenImagesByField: curr.chosenImagesByField,
         isSubmittingNumeric: false,
         errorMessage: 'لا يمكنك إرسال تحديث جديد بينما الطلب السابق قيد المراجعة.',
@@ -192,18 +234,52 @@ class ItemUpdateCubit extends Cubit<ItemUpdateState> {
       return;
     }
 
+    bool hasAnyChange = false;
+    String? validationErrorMessage;
     final List<String> allSelectedImages = [];
-    curr.chosenImagesByField.values.forEach(allSelectedImages.addAll);
 
-    if (allSelectedImages.isEmpty) {
+    // Enforce that uploaded photos match the exact increment for each modified field
+    for (final entry in curr.numericValues.entries) {
+      final key = entry.key;
+      final currentValue = entry.value;
+      final initialValue = curr.originalNumericValues[key] ?? 0;
+      final increment = currentValue - initialValue;
+
+      if (increment > 0) {
+        hasAnyChange = true;
+        final images = curr.chosenImagesByField[key] ?? [];
+        if (images.length != increment) {
+          validationErrorMessage = 'يرجى إرفاق عدد صور ($increment) يطابق عدد البنود المنجزة الجديدة لـ "${_getFieldArabicTitle(key)}". (تم إرفاق ${images.length} حالياً)';
+          break;
+        }
+        allSelectedImages.addAll(images);
+      }
+    }
+
+    if (!hasAnyChange) {
       emit(ItemUpdateSubmissionFailure(
         data: curr.data,
         chosenImagesBySpace: curr.chosenImagesBySpace,
         submittingSpaceIds: curr.submittingSpaceIds,
         numericValues: curr.numericValues,
+        originalNumericValues: curr.originalNumericValues,
         chosenImagesByField: curr.chosenImagesByField,
         isSubmittingNumeric: false,
-        errorMessage: 'يرجى اختيار صورة واحدة على الأقل لتوثيق الإنجاز.',
+        errorMessage: 'لم تقم بتعديل أي كمية ليتم حفظها. يرجى تعديل البنود التي تود تحديثها الآن وتأجيل البقية.',
+      ));
+      return;
+    }
+
+    if (validationErrorMessage != null) {
+      emit(ItemUpdateSubmissionFailure(
+        data: curr.data,
+        chosenImagesBySpace: curr.chosenImagesBySpace,
+        submittingSpaceIds: curr.submittingSpaceIds,
+        numericValues: curr.numericValues,
+        originalNumericValues: curr.originalNumericValues,
+        chosenImagesByField: curr.chosenImagesByField,
+        isSubmittingNumeric: false,
+        errorMessage: validationErrorMessage,
       ));
       return;
     }
@@ -212,7 +288,9 @@ class ItemUpdateCubit extends Cubit<ItemUpdateState> {
 
     final Map<String, String> payload = {};
     curr.numericValues.forEach((key, value) {
-      payload[key] = value.toString();
+      final initialValue = curr.originalNumericValues[key] ?? 0;
+      final increment = value - initialValue;
+      payload[key] = increment.toString();
     });
 
     try {
@@ -239,6 +317,7 @@ class ItemUpdateCubit extends Cubit<ItemUpdateState> {
           chosenImagesBySpace: updatedCurr.chosenImagesBySpace,
           submittingSpaceIds: updatedCurr.submittingSpaceIds,
           numericValues: updatedCurr.numericValues,
+          originalNumericValues: updatedCurr.originalNumericValues,
           chosenImagesByField: updatedCurr.chosenImagesByField,
           isSubmittingNumeric: false,
           errorMessage: failure.errMessage,
@@ -252,6 +331,7 @@ class ItemUpdateCubit extends Cubit<ItemUpdateState> {
           chosenImagesBySpace: updatedCurr.chosenImagesBySpace,
           submittingSpaceIds: updatedCurr.submittingSpaceIds,
           numericValues: updatedCurr.numericValues,
+          originalNumericValues: updatedCurr.originalNumericValues,
           chosenImagesByField: updatedCurr.chosenImagesByField,
           isSubmittingNumeric: false,
           errorMessage: e.toString(),

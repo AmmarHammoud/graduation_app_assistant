@@ -15,6 +15,7 @@ class ItemUpdateLoaded extends ItemUpdateState {
   final Map<int, List<String>> chosenImagesBySpace;
   final Set<int> submittingSpaceIds;
   final Map<String, int> numericValues;
+  final Map<String, int> originalNumericValues;
   final Map<String, List<String>> chosenImagesByField;
   final bool isSubmittingNumeric;
 
@@ -23,6 +24,7 @@ class ItemUpdateLoaded extends ItemUpdateState {
     this.chosenImagesBySpace = const {},
     this.submittingSpaceIds = const {},
     this.numericValues = const {},
+    this.originalNumericValues = const {},
     this.chosenImagesByField = const {},
     this.isSubmittingNumeric = false,
   });
@@ -32,6 +34,7 @@ class ItemUpdateLoaded extends ItemUpdateState {
     Map<int, List<String>>? chosenImagesBySpace,
     Set<int>? submittingSpaceIds,
     Map<String, int>? numericValues,
+    Map<String, int>? originalNumericValues,
     Map<String, List<String>>? chosenImagesByField,
     bool? isSubmittingNumeric,
   }) {
@@ -40,6 +43,7 @@ class ItemUpdateLoaded extends ItemUpdateState {
       chosenImagesBySpace: chosenImagesBySpace ?? this.chosenImagesBySpace,
       submittingSpaceIds: submittingSpaceIds ?? this.submittingSpaceIds,
       numericValues: numericValues ?? this.numericValues,
+      originalNumericValues: originalNumericValues ?? this.originalNumericValues,
       chosenImagesByField: chosenImagesByField ?? this.chosenImagesByField,
       isSubmittingNumeric: isSubmittingNumeric ?? this.isSubmittingNumeric,
     );
@@ -51,6 +55,7 @@ class ItemUpdateLoaded extends ItemUpdateState {
         chosenImagesBySpace,
         submittingSpaceIds,
         numericValues,
+        originalNumericValues,
         chosenImagesByField,
         isSubmittingNumeric,
       ];
@@ -69,6 +74,7 @@ class ItemUpdateSubmissionFailure extends ItemUpdateLoaded {
     super.chosenImagesBySpace = const {},
     super.submittingSpaceIds = const {},
     super.numericValues = const {},
+    super.originalNumericValues = const {},
     super.chosenImagesByField = const {},
     super.isSubmittingNumeric = false,
     required this.errorMessage,
@@ -80,6 +86,7 @@ class ItemUpdateSubmissionFailure extends ItemUpdateLoaded {
         chosenImagesBySpace,
         submittingSpaceIds,
         numericValues,
+        originalNumericValues,
         chosenImagesByField,
         isSubmittingNumeric,
         errorMessage,

@@ -1009,17 +1009,17 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
     final name = itemName.toLowerCase();
     if (name.contains('ملابن')) {
       return [
-        NumericFieldConfig(key: 'completed_wood_doors', title: 'أبواب خشب', initialValue: totalWoodDoors, totalValue: totalWoodDoors),
-        NumericFieldConfig(key: 'completed_aluminum_doors', title: 'أبواب ألمنيوم', initialValue: totalAluminumDoors, totalValue: totalAluminumDoors),
-        NumericFieldConfig(key: 'completed_windows', title: 'شبابيك', initialValue: totalWindows, totalValue: totalWindows),
+        NumericFieldConfig(key: 'completed_wood_doors', title: 'أبواب خشب', initialValue: 0, totalValue: totalWoodDoors),
+        NumericFieldConfig(key: 'completed_aluminum_doors', title: 'أبواب ألمنيوم', initialValue: 0, totalValue: totalAluminumDoors),
+        NumericFieldConfig(key: 'completed_windows', title: 'شبابيك', initialValue: 0, totalValue: totalWindows),
       ];
     } else if (name.contains('ألمنيوم') || name.contains('المنيوم')) {
       return [
-        NumericFieldConfig(key: 'completed_aluminum', title: 'ألمنيوم وأبجورات', initialValue: totalAluminum, totalValue: totalAluminum),
+        NumericFieldConfig(key: 'completed_aluminum', title: 'ألمنيوم وأبجورات', initialValue: 0, totalValue: totalAluminum),
       ];
     } else if (name.contains('أبواب') || name.contains('ابواب') || name.contains('نجارة')) {
       return [
-        NumericFieldConfig(key: 'completed_doors', title: 'أبواب خشب', initialValue: totalDoors, totalValue: totalDoors),
+        NumericFieldConfig(key: 'completed_doors', title: 'أبواب خشب', initialValue: 0, totalValue: totalDoors),
         NumericFieldConfig(key: 'kitchen_cabinet_done', title: 'أغطية أبجور', initialValue: 0, totalValue: totalKitchenCabinet),
       ];
     }
@@ -1032,12 +1032,14 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
   }
 
   Widget _buildNumericFieldCard(BuildContext context, NumericFieldConfig config, ItemUpdateLoaded state) {
+    final initialValue = state.originalNumericValues[config.key] ?? config.initialValue;
     final currentValue = state.numericValues[config.key] ?? config.initialValue;
     final images = state.chosenImagesByField[config.key] ?? [];
-    final hasImage = images.isNotEmpty;
+    final photoCount = images.length;
+    final increment = currentValue - initialValue;
 
     final isPendingRequest = state.data.hasPendingProgressRequest;
-    final canDecrement = currentValue > 0 && !isPendingRequest;
+    final canDecrement = currentValue > initialValue && !isPendingRequest;
     final canIncrement = currentValue < config.totalValue && !isPendingRequest;
 
     return Container(
@@ -1099,12 +1101,82 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          const Row(
+          const SizedBox(height: 12),
+
+          // Validation and instructions badge
+          if (increment > 0)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
+                color: photoCount == increment ? const Color(0xFFE6F4EA) : const Color(0xFFFFF3CD),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: photoCount == increment ? const Color(0xFF34A853).withOpacity(0.2) : const Color(0xFFF1C40F).withOpacity(0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    photoCount == increment ? Icons.check_circle_outline_rounded : Icons.info_outline_rounded,
+                    color: photoCount == increment ? const Color(0xFF137333) : const Color(0xFF664D03),
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      photoCount == increment
+                          ? 'مكتمل! تم إرفاق $photoCount صور توثيقية للـ $increment بنود مضافة.'
+                          : 'مطلوب إرفاق عدد صور ($increment) يطابق عدد البنود المنجزة الجديدة. (مرفق حالياً: $photoCount)',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontFamily: 'Tajawal',
+                        fontWeight: FontWeight.bold,
+                        color: photoCount == increment ? const Color(0xFF137333) : const Color(0xFF664D03),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else if (increment == 0)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.schedule,
+                    color: Color(0xFF64748B),
+                    size: 16,
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'لم يتم إجراء أي تعديل على هذا البند حالياً (يمكنك تحديثه لاحقاً).',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontFamily: 'Tajawal',
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'صورة التوثيق',
+              const Text(
+                'صور التوثيق',
                 style: TextStyle(
                   fontFamily: 'Tajawal',
                   color: Color(0xFF94A3B8),
@@ -1112,7 +1184,7 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              Text(
+              const Text(
                 'العدد الجديد',
                 style: TextStyle(
                   fontFamily: 'Tajawal',
@@ -1127,73 +1199,98 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              if (!hasImage)
-                GestureDetector(
-                  onTap: isPendingRequest ? null : () => _pickNumericImage(context, config.key),
-                  child: CustomPaint(
-                    painter: DashedRectPainter(
-                      color: isPendingRequest ? const Color(0xFFE2E8F0) : const Color(0xFFCBD5E1),
-                      strokeWidth: 1.2,
-                      borderRadius: 12,
-                    ),
-                    child: Container(
-                      width: 140,
-                      height: 44,
-                      alignment: Alignment.center,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.add_photo_alternate_outlined, color: isPendingRequest ? const Color(0xFFCBD5E1) : const Color(0xFF94A3B8), size: 18),
-                          const SizedBox(width: 6),
-                          Text(
-                            'أضف صورة',
-                            style: TextStyle(
-                              fontFamily: 'Tajawal',
-                              color: isPendingRequest ? const Color(0xFFCBD5E1) : const Color(0xFF94A3B8),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
+              // Display Horizontal list of uploaded images with add button inside
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      ...images.asMap().entries.map((entry) {
+                        final idx = entry.key;
+                        final path = entry.value;
+                        return Container(
+                          margin: const EdgeInsets.only(left: 8),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  File(path),
+                                  width: 60,
+                                  height: 44,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              if (!isPendingRequest)
+                                Positioned(
+                                  top: -6,
+                                  right: -6,
+                                  child: GestureDetector(
+                                    onTap: () => context.read<ItemUpdateCubit>().removeNumericImageAtIndex(config.key, idx),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 11,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      }),
+                      if (photoCount < increment && !isPendingRequest)
+                        GestureDetector(
+                          onTap: () => _pickNumericImage(context, config.key),
+                          child: CustomPaint(
+                            painter: DashedRectPainter(
+                              color: const Color(0xFFCBD5E1),
+                              strokeWidth: 1.2,
+                              borderRadius: 8,
+                            ),
+                            child: Container(
+                              width: 80,
+                              height: 44,
+                              alignment: Alignment.center,
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.add_a_photo_outlined, color: Color(0xFF94A3B8), size: 16),
+                                ],
+                              ),
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                )
-              else
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        File(images.last),
-                        width: 140,
-                        height: 44,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    if (!isPendingRequest)
-                      Positioned(
-                        top: -6,
-                        right: -6,
-                        child: GestureDetector(
-                          onTap: () => context.read<ItemUpdateCubit>().clearNumericImage(config.key),
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              color: Colors.white,
-                              size: 14,
-                            ),
+                        )
+                      else if (increment > 0 && photoCount == increment)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE6F4EA),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Icon(Icons.check, color: Color(0xFF137333), size: 16),
+                        )
+                      else if (increment == 0)
+                        Text(
+                          'لا يتطلب صورا',
+                          style: TextStyle(
+                            fontFamily: 'Tajawal',
+                            color: Colors.grey.shade400,
+                            fontSize: 11,
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
+              ),
+              const SizedBox(width: 8),
               Container(
                 height: 44,
                 width: 130,
@@ -1279,10 +1376,27 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
   }
 
   Widget _buildFixedBottomSaveButton(BuildContext context, ItemUpdateLoaded state) {
-    final hasImages = state.chosenImagesByField.values.any((images) => images.isNotEmpty);
+    bool hasAnyChange = false;
+    bool isAnyFieldMismatch = false;
+
+    final configs = _getNumericFieldsConfig(state.data.itemName);
+    for (final config in configs) {
+      final initialValue = state.originalNumericValues[config.key] ?? config.initialValue;
+      final currentValue = state.numericValues[config.key] ?? config.initialValue;
+      final increment = currentValue - initialValue;
+      final photoCount = state.chosenImagesByField[config.key]?.length ?? 0;
+
+      if (increment > 0) {
+        hasAnyChange = true;
+        if (photoCount != increment) {
+          isAnyFieldMismatch = true;
+        }
+      }
+    }
+
     final isSubmitting = state.isSubmittingNumeric;
     final isPending = state.data.hasPendingProgressRequest;
-    final isEnabled = hasImages && !isSubmitting && !isPending;
+    final isEnabled = hasAnyChange && !isAnyFieldMismatch && !isSubmitting && !isPending;
 
     return Container(
       padding: const EdgeInsets.all(16),
