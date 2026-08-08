@@ -374,42 +374,42 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'رقم المشروع #PRJ-832',
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 4),
+                // Text(
+                //   'رقم المشروع #PRJ-832',
+                //   style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.w500),
+                // ),
+                // const SizedBox(height: 4),
                 Text(
                   data.itemName,
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Color(0xFF0F172A)),
                 ),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEF3C7), // Light amber
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFFDE68A)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFD97706),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      const Text(
-                        'قيد التنفيذ',
-                        style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 11),
-                      ),
-                    ],
-                  ),
-                )
+                // const SizedBox(height: 10),
+                // Container(
+                //   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                //   decoration: BoxDecoration(
+                //     color: const Color(0xFFFEF3C7), // Light amber
+                //     borderRadius: BorderRadius.circular(20),
+                //     border: Border.all(color: const Color(0xFFFDE68A)),
+                //   ),
+                //   child: Row(
+                //     mainAxisSize: MainAxisSize.min,
+                //     children: [
+                //       Container(
+                //         width: 6,
+                //         height: 6,
+                //         decoration: const BoxDecoration(
+                //           color: Color(0xFFD97706),
+                //           shape: BoxShape.circle,
+                //         ),
+                //       ),
+                //       const SizedBox(width: 6),
+                //       const Text(
+                //         'قيد التنفيذ',
+                //         style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 11),
+                //       ),
+                //     ],
+                //   ),
+                // )
               ],
             ),
           ),
