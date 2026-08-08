@@ -23,10 +23,6 @@ class AssistantDashboardPage extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.menu_rounded, color: Theme.of(context).primaryColor),
-            onPressed: () {},
-          ),
           title: Text(
             'مشاريعي المسندة',
             style: TextStyle(
