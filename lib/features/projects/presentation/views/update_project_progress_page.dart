@@ -581,9 +581,8 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
             ],
           ),
 
-          const SizedBox(height: 16),
-
-          if (space.uploadedMediaUrl != null)
+          if (space.uploadedMediaUrl != null) ...[
+            const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -636,8 +635,9 @@ class _UpdateProjectProgressPageState extends State<UpdateProjectProgressPage> {
                   ),
                 ],
               ),
-            )
-          else ...[
+            ),
+          ] else if (!isCompleted) ...[
+            const SizedBox(height: 16),
             // Dashed border style representation for file upload
             GestureDetector(
               onTap: () => _pickImage(context, space.id),

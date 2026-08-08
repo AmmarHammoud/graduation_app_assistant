@@ -2,11 +2,18 @@ import 'package:get_it/get_it.dart';
 import 'package:graduation_app_assistant/features/projects/data/datasources/assigned_projects_remote_data_source.dart';
 
 // Existing Core & Feature Imports
-import '../../features/ai_visualization/domain/usecases/ai_visualization_usecases.dart';
 import '../../features/auth/data/repo/auth_repo_imp.dart';
 import '../../features/auth/domain/repo/auth_repo.dart';
 import '../../features/profile/data/repo/profile_repo_imp.dart';
 import '../../features/profile/domain/repo/profile_repo.dart';
+import '../../features/visualizations/data/datasources/visualizations_remote_data_source.dart';
+import '../../features/visualizations/data/repositories/visualizations_repository_impl.dart';
+import '../../features/visualizations/domain/repositories/visualizations_repository.dart';
+import '../../features/visualizations/domain/usecases/add_visualization_comment.dart';
+import '../../features/visualizations/domain/usecases/get_project_visualizations.dart';
+import '../../features/visualizations/domain/usecases/get_visualization_comments.dart';
+import '../../features/visualizations/presentation/cubit/visualization_comments_cubit.dart';
+import '../../features/visualizations/presentation/cubit/visualizations_cubit.dart';
 import 'api_service.dart';
 import 'database_service.dart';
 
@@ -36,13 +43,6 @@ import '../../features/expenses/domain/repositories/expenses_repository.dart';
 import '../../features/expenses/domain/usecases/add_expense_usecase.dart';
 import '../../features/expenses/domain/usecases/get_expenses_usecase.dart';
 import '../../features/expenses/presentation/cubits/expenses_cubit.dart';
-
-// AI Visualizations Feature Imports
-import '../../features/ai_visualization/data/datasources/ai_visualization_remote_data_source.dart';
-import '../../features/ai_visualization/data/repositories/ai_visualization_repository_impl.dart';
-import '../../features/ai_visualization/domain/repositories/ai_visualization_repository.dart';
-import '../../features/ai_visualization/presentation/cubits/ai_visualization_cubit.dart';
-
 // Comments Feature Imports
 import '../../features/comments/data/datasources/comment_remote_data_source.dart';
 import '../../features/comments/data/repositories/comment_repository_impl.dart';
@@ -166,28 +166,23 @@ Future<void> setupSingltonGetIt() async {
   ));
 
   // ==========================================
-  // AI Visualizations Feature (🆕 Added)
+  // Visualizations Feature
   // ==========================================
-
-  // 1. Data Source
-  getIt.registerLazySingleton<AiVisualizationRemoteDataSource>(
-    () => AiVisualizationRemoteDataSourceImpl(getIt.get<DatabaseService>()),
+  getIt.registerLazySingleton<VisualizationsRemoteDataSource>(
+        () => VisualizationsRemoteDataSourceImpl(databaseService: getIt.get<DatabaseService>()),
   );
-
-  // 2. Repository
-  getIt.registerLazySingleton<AiVisualizationRepository>(
-    () => AiVisualizationRepositoryImpl(remoteDataSource: getIt.get<AiVisualizationRemoteDataSource>()),
+  getIt.registerLazySingleton<VisualizationsRepository>(
+        () => VisualizationsRepositoryImpl(remoteDataSource: getIt.get<VisualizationsRemoteDataSource>()),
   );
-
-  // 3. Domain Use Cases
-  getIt.registerLazySingleton(() => GetVisualizationsUseCase(getIt.get<AiVisualizationRepository>()));
-  getIt.registerLazySingleton(() => CreateVisualizationUseCase(getIt.get<AiVisualizationRepository>()));
-
-  // 4. Presentation Cubit Factory
-  getIt.registerFactory(() => AiVisualizationCubit(
-    getVisualizationsUseCase: getIt.get<GetVisualizationsUseCase>(),
-    createVisualizationUseCase: getIt.get<CreateVisualizationUseCase>(),
+  getIt.registerLazySingleton(() => GetProjectVisualizations(getIt.get<VisualizationsRepository>()));
+  getIt.registerLazySingleton(() => GetVisualizationComments(getIt.get<VisualizationsRepository>()));
+  getIt.registerLazySingleton(() => AddVisualizationComment(getIt.get<VisualizationsRepository>()));
+  getIt.registerFactory(() => VisualizationsCubit(getProjectVisualizations: getIt.get<GetProjectVisualizations>()));
+  getIt.registerFactory(() => VisualizationCommentsCubit(
+    getVisualizationComments: getIt.get<GetVisualizationComments>(),
+    addVisualizationComment: getIt.get<AddVisualizationComment>(),
   ));
+
 
   // ==========================================
   // Comments Feature (🆕 Added)

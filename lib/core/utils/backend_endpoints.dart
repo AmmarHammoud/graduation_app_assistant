@@ -1,5 +1,5 @@
 class BackendEndPoint {
-  static const String baseUrl = 'http://192.168.83.9:8000/api/';
+  static const String baseUrl = 'http://192.168.83.9:8000';
   static const String signIn = '/auth/internal/login';
   static const String signUp = 'auth/register';
   static const String verifyEmail = 'auth/verify-email';
@@ -15,5 +15,9 @@ class BackendEndPoint {
   static const String notifications = 'notifications';
   static const String profile = 'assistant/account';
 
-  static String get apiUrl => baseUrl;
+  static String get apiUrl => '$baseUrl/api/';
+
+  // AI Visualizations
+  static String projectVisualizations(String projectId) => '/project-images/$projectId/visualizations';
+  static String aiVisualizationComments(int aiVisualizationId) => '/ai-visualizations/$aiVisualizationId/comments';
 }
