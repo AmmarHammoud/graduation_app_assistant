@@ -264,25 +264,25 @@ class AssistantDashboardPage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today_outlined,
-                    size: 16,
-                    color: project.activeWorkItemsCount > 0 ? AppColors.accentGold : AppColors.textGrey,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'بنود قيد التنفيذ: ${project.activeWorkItemsCount}',
-                    style: TextStyle(
-                      fontFamily: 'Tajawal',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: project.activeWorkItemsCount > 0 ? AppColors.textDark : AppColors.textGrey,
-                    ),
-                  ),
-                ],
-              ),
+              // Row(
+              //   children: [
+              //     Icon(
+              //       Icons.calendar_today_outlined,
+              //       size: 16,
+              //       color: project.activeWorkItemsCount > 0 ? AppColors.accentGold : AppColors.textGrey,
+              //     ),
+              //     const SizedBox(width: 6),
+              //     Text(
+              //       'بنود قيد التنفيذ: ${project.activeWorkItemsCount}',
+              //       style: TextStyle(
+              //         fontFamily: 'Tajawal',
+              //         fontSize: 12,
+              //         fontWeight: FontWeight.w500,
+              //         color: project.activeWorkItemsCount > 0 ? AppColors.textDark : AppColors.textGrey,
+              //       ),
+              //     ),
+              //   ],
+              // ),
               TextButton(
                 onPressed: () {
                   // Navigation setup to details screen goes here
